@@ -9,10 +9,10 @@ before_install:
   # - go get github.com/mattn/goveralls
   # - go get github.com/modocache/gover
 script:
-  - pwd
-  - ls -al $GOPATH/src/github.com/stamm/dep_radar/
-  - ls -al $GOPATH/src/github.com/stamm/dep_radar/src/tags
-  - ls -al $GOPATH/src/github.com/stamm/dep_radar/src/
   - go test ./...
   # - $GOPATH/bin/gover
   # - $GOPATH/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN
+cache:
+  directories:
+    - $GOPATH/bin
+  timeout: 1000

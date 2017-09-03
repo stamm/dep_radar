@@ -1,0 +1,18 @@
+<table>
+<tr>
+	<td>apps</td>
+	{{ range $key, $value := .AppsMap -}}
+		<td>{{ $key }}</td>
+	{{ end -}}
+</tr>
+{{ range $pkg := .SortedPkgsKeys -}}
+<tr>
+	<td>{{ $pkg }}</td>
+	{{ range $key, $value := .AppsMap -}}
+		<td>{{ index $value $pkg | .Version }}</td>
+	{{ end -}}
+</tr>
+{{ end -}}
+</table>
+
+

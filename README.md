@@ -13,6 +13,9 @@ Your code must implement:
 * Init provider detector. It can be a default with support only github, but you can add you own provider.
 * A http handler with calling method for generate html table with all apps and dependencies.
 
+You can find [examples](examples/)
+
+
 
 ## Supported code storage
 * Github (env: GITHUB_TOKEN)

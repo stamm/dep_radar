@@ -11,7 +11,7 @@ You can't just run some binary. You have to write a bit of code.
 Your code must implement:
 * Get a list of packages of applications what dependencies you want to monitor.
 * Init provider detector. It can be a default with support only github, but you can add you own provider.
-* A http handler with call method for generate html table with all apps and dependencies.
+* A http handler with calling method for generate html table with all apps and dependencies.
 
 
 ## Supported code storage

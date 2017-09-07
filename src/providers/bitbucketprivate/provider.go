@@ -52,6 +52,7 @@ type BitBucketPrivate struct {
 	gitDomain  string
 	goGetUrl   string
 	apiUrl     string
+	mapProject map[i.Pkg]string
 }
 
 type Options struct {
@@ -66,6 +67,7 @@ func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *BitBucket
 		goGetUrl:   goGetUrl,
 		gitDomain:  gitDomain,
 		apiUrl:     apiUrl,
+		mapProject: make(map[i.Pkg]string),
 	}
 }
 
@@ -84,6 +86,9 @@ func (a *BitBucketPrivate) GoGetUrl() string {
 
 // todo cache result in map
 func (a *BitBucketPrivate) getProject(pkg i.Pkg) (string, error) {
+	if project, ok := a.mapProject[pkg]; ok {
+		return project, nil
+	}
 	// if a.project != "" {
 	// 	return nil
 	// }
@@ -91,6 +96,7 @@ func (a *BitBucketPrivate) getProject(pkg i.Pkg) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	a.mapProject[pkg] = project
 	// fmt.Printf("project = %+v\n", project)
 	// a.project = project
 	return project, nil

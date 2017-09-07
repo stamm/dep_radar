@@ -22,21 +22,21 @@ func TestBBRepo_SetProject(t *testing.T) {
 </body>
 </html>`), nil)
 
-	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com")
-	err := prov.setProject(i.Pkg("godep.example.com/app"))
+	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	project, err := prov.getProject(i.Pkg("godep.example.com/app"))
 	require.NoError(err)
-	require.Equal("go_project", prov.project)
+	require.Equal("go_project", project)
 }
 
 func TestBBRepo_SetProject_DontSetTwice(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	prov := New(&mocks.IWebClient{}, "bitbucket.example.com", "godep.example.com")
-	prov.project = "a"
-	err := prov.setProject(i.Pkg("godep.example.com/app"))
+	prov := New(&mocks.IWebClient{}, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	prov.mapProject[i.Pkg("godep.example.com/app")] = "a"
+	project, err := prov.getProject(i.Pkg("godep.example.com/app"))
 	require.NoError(err)
-	require.Equal("a", prov.project)
+	require.Equal("a", project)
 }
 
 func TestBBRepo_SetProjectWithError(t *testing.T) {
@@ -46,10 +46,10 @@ func TestBBRepo_SetProjectWithError(t *testing.T) {
 	mHttpClient := &mocks.IWebClient{}
 	mHttpClient.On("Get", "https://godep.example.com/app?go-get=1").Return([]byte(``), errors.New("err"))
 
-	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com")
-	err := prov.setProject(i.Pkg("godep.example.com/app"))
+	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	project, err := prov.getProject(i.Pkg("godep.example.com/app"))
 	require.EqualError(err, "err")
-	require.Equal("", prov.project)
+	require.Equal("", project)
 }
 
 // func TestGithubRepo_WithDep(t *testing.T) {
@@ -161,7 +161,7 @@ func TestBBRepo_CheckGoGetUrl(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	prov := New(&mocks.IWebClient{}, "bitbucket.example.com", "godep.example.com")
+	prov := New(&mocks.IWebClient{}, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
 	require.Equal("godep.example.com", prov.GoGetUrl())
 }
 

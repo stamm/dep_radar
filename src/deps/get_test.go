@@ -6,137 +6,124 @@ import (
 
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/interfaces/mocks"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestDep_Ok(t *testing.T) {
+func Test_Ok(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
+
+	mApp := &mocks.IApp{}
+	mTool := &mocks.IDepTool{}
+	mTool.On("Deps", mApp).Return(mapDep(), nil)
+
+	detector := NewDetector()
+	detector.AddTool(mTool)
+
+	appDeps, err := detector.Deps(mApp)
+	require.NoError(err)
+	require.Equal(i.Manager(-1), appDeps.Manager)
+	deps := appDeps.Deps
+	require.Len(deps, 1)
+	require.Equal(i.Pkg("test"), deps["test"].Package)
+	require.Equal(i.Hash("hash1"), deps["test"].Hash)
+}
+
+func Test_Error(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
 	mApp := &mocks.IApp{}
 
-	strategy := func(i.IApp) (i.AppDeps, error) {
-		return i.AppDeps{
-			Deps: map[i.Pkg]i.Dep{
-				"test": {
-					Package: "test",
-					Hash:    "hash1",
-				},
+	mTool := &mocks.IDepTool{}
+	mTool.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+
+	detector := NewDetector()
+	detector.AddTool(mTool)
+
+	appDeps, err := detector.Deps(mApp)
+	require.EqualError(err, "error")
+	require.Len(appDeps.Deps, 0)
+}
+
+func Test_FirstOk(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	mApp := &mocks.IApp{}
+
+	mTool1 := &mocks.IDepTool{}
+	mTool1.On("Deps", mApp).Return(mapDep(), nil)
+
+	mTool2 := &mocks.IDepTool{}
+	mTool2.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+
+	detector := NewDetector()
+	detector.AddTool(mTool1)
+	detector.AddTool(mTool2)
+
+	appDeps, err := detector.Deps(mApp)
+	require.NoError(err)
+	deps := appDeps.Deps
+	require.Len(deps, 1)
+	require.Equal(i.Pkg("test"), deps["test"].Package)
+	require.Equal(i.Hash("hash1"), deps["test"].Hash)
+}
+
+func Test_FirstBad(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	mApp := &mocks.IApp{}
+
+	mTool1 := &mocks.IDepTool{}
+	mTool1.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+	mTool2 := &mocks.IDepTool{}
+	mTool2.On("Deps", mApp).Return(mapDep(), nil)
+
+	detector := NewDetector()
+	detector.AddTool(mTool1)
+	detector.AddTool(mTool2)
+
+	appDeps, err := detector.Deps(mApp)
+	require.NoError(err)
+	deps := appDeps.Deps
+	require.Len(deps, 1)
+	require.Equal(i.Pkg("test"), deps["test"].Package)
+	require.Equal(i.Hash("hash1"), deps["test"].Hash)
+}
+
+func Test_No(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	mApp := &mocks.IApp{}
+	detector := NewDetector()
+
+	appDeps, err := detector.Deps(mApp)
+	require.EqualError(err, "Bad")
+	require.Len(appDeps.Deps, 0)
+}
+
+func Test_DefaultDetector(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	detector := DefaultDetector()
+
+	require.Len(detector.Tools, 2)
+	require.Equal("dep", detector.Tools[0].Name())
+	require.Equal("glide", detector.Tools[1].Name())
+}
+
+func mapDep() i.AppDeps {
+	return i.AppDeps{
+		Manager: i.Manager(-1),
+		Deps: map[i.Pkg]i.Dep{
+			"test": {
+				Package: "test",
+				Hash:    "hash1",
 			},
-		}, nil
-	}
-
-	depTool := NewTools()
-	depTool.AddTool(Tool{
-		Fn: strategy,
-	})
-	appDeps, err := depTool.Deps(mApp)
-	assert.Nil(err)
-	deps := appDeps.Deps
-	assert.Equal(len(deps), 1)
-	assert.Equal(deps["test"].Package, "test")
-	assert.Equal(deps["test"].Hash, i.Hash("hash1"))
-}
-
-func TestDep_Error(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-
-	mApp := &mocks.IApp{}
-
-	strategy := func(i.IApp) (i.AppDeps, error) {
-		return i.AppDeps{}, errors.New("error")
-	}
-
-	depTool := NewTools()
-	depTool.AddTool(Tool{
-		Fn: strategy,
-	})
-	appDeps, err := depTool.Deps(mApp)
-	assert.EqualError(err, "error")
-	assert.Equal(len(appDeps.Deps), 0)
-}
-
-func TestDep_FirstOk(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-
-	mApp := &mocks.IApp{}
-
-	strategies := []i.IDepStrategy{
-		func(i.IApp) (i.AppDeps, error) {
-			return i.AppDeps{
-				Deps: map[i.Pkg]i.Dep{
-					"test": {
-						Package: "test",
-						Hash:    "hash1",
-					},
-				},
-			}, nil
-		},
-		func(i.IApp) (i.AppDeps, error) {
-			return i.AppDeps{}, errors.New("error")
 		},
 	}
-
-	depTool := NewTools()
-	for _, strategy := range strategies {
-		depTool.AddTool(Tool{
-			Fn: strategy,
-		})
-	}
-	appDeps, err := depTool.Deps(mApp)
-	assert.Nil(err)
-	deps := appDeps.Deps
-	assert.Equal(len(deps), 1)
-	assert.Equal(deps["test"].Package, "test")
-	assert.Equal(deps["test"].Hash, i.Hash("hash1"))
-}
-
-func TestDep_FirstBad(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-
-	mApp := &mocks.IApp{}
-
-	strategies := []i.IDepStrategy{
-		func(i.IApp) (i.AppDeps, error) {
-			return i.AppDeps{}, errors.New("error")
-		},
-		func(i.IApp) (i.AppDeps, error) {
-			return i.AppDeps{
-				Deps: map[i.Pkg]i.Dep{
-					"test": {
-						Package: "test",
-						Hash:    "hash1",
-					},
-				},
-			}, nil
-		},
-	}
-
-	depTool := NewTools()
-	for _, strategy := range strategies {
-		depTool.AddTool(Tool{
-			Fn: strategy,
-		})
-	}
-	appDeps, err := depTool.Deps(mApp)
-	assert.Nil(err)
-	deps := appDeps.Deps
-	assert.Equal(len(deps), 1)
-	assert.Equal(deps["test"].Package, "test")
-	assert.Equal(deps["test"].Hash, i.Hash("hash1"))
-}
-
-func TestDep_No(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-
-	mApp := &mocks.IApp{}
-
-	depTool := NewTools()
-	appDeps, err := depTool.Deps(mApp)
-	assert.EqualError(err, "Bad")
-	assert.Equal(len(appDeps.Deps), 0)
 }

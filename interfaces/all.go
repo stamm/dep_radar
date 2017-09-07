@@ -4,20 +4,11 @@ type Version string
 type Hash string
 type Pkg string
 
-//go:generate mockery -name=IReposGetter -case=underscore
-type IReposGetter interface {
-	Apps() []IApp
-	// Libs() []ILib
-}
-
 //go:generate mockery -name=IApp -case=underscore
 type IApp interface {
-	IRepo
-}
-
-type IRepo interface {
 	Package() Pkg
-	File(filename string) ([]byte, error)
+	Provider() IProvider
+	Deps() (AppDeps, error)
 }
 
 type ILib interface {
@@ -35,7 +26,7 @@ type AppDeps struct {
 }
 
 type Dep struct {
-	Package string
+	Package Pkg
 	Hash    Hash
 	Version string
 }
@@ -45,10 +36,6 @@ type AppListWithDeps map[Pkg]map[Pkg]Dep
 type LibMapWithTags map[Pkg][]Tag
 
 type IDepStrategy func(IApp) (AppDeps, error)
-
-type ITagGetter interface {
-	Tags() ([]Tag, error)
-}
 
 type Tag struct {
 	Version string
@@ -60,7 +47,40 @@ type IWebClient interface {
 	Get(string) ([]byte, error)
 }
 
+// Provider
+
+type IFileGetter interface {
+	File(pkg Pkg, filename string) ([]byte, error)
+}
+
+type ITagGetter interface {
+	Tags(Pkg) ([]Tag, error)
+}
+
+//go:generate mockery -name=IProvider -case=underscore
 type IProvider interface {
-	IRepo
+	IFileGetter
 	ITagGetter
+	GoGetUrl() string
+}
+
+//go:generate mockery -name=IReposGetter -case=underscore
+type IReposGetter interface {
+	Apps() ([]Pkg, error)
+	// Libs() []ILib
+}
+
+type IDetector interface {
+	Detect(Pkg) (IProvider, error)
+}
+
+type IDepDetector interface {
+	Deps(IApp) (AppDeps, error)
+	AddTool(IDepTool)
+}
+
+//go:generate mockery -name=IDepTool -case=underscore
+type IDepTool interface {
+	Deps(IApp) (AppDeps, error)
+	Name() string
 }

@@ -4,26 +4,61 @@ import (
 	"fmt"
 	"testing"
 
+	i "github.com/stamm/dep_radar/interfaces"
+	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
+	"github.com/stamm/dep_radar/src/deps/dep"
+	"github.com/stamm/dep_radar/src/deps/glide"
+	"github.com/stamm/dep_radar/src/providers"
 	"github.com/stamm/dep_radar/src/providers/github"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIntegration_Github(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
-	app, err := github.New("github.com/Masterminds/glide", github.NewHTTPWrapper("", 2))
-	assert.NoError(err)
+	githubProv := github.New(github.NewHTTPWrapper("", 2))
 
-	depTools := deps.DefaultTools()
+	provDetector := providers.NewDetector()
+	provDetector.AddProvider(githubProv)
 
-	appDeps, err := depTools.Deps(app)
-	assert.NoError(err)
-	deps := appDeps.Deps
-	fmt.Printf("len(deps) = %+v\n", len(deps))
-	assert.Equal(len(deps), 5)
-	// assert.Equal(appDeps[0].Package, "test")
-	// assert.Equal(appDeps[0].Hash, i.Hash("hash1"))
+	depDetector := deps.NewDetector()
+	depDetector.AddTool(dep.New())
+	depDetector.AddTool(glide.New())
+
+	appsPkgs := []i.Pkg{"github.com/Masterminds/glide"}
+	apps := make([]i.IApp, 0, len(appsPkgs))
+	for _, appPkg := range appsPkgs {
+		app, err := app.New(appPkg, provDetector, depDetector)
+		require.NoError(err)
+		apps = append(apps, app)
+	}
+
+	libs := make(map[i.Pkg]i.Dep)
+	for _, app := range apps {
+		deps, err := app.Deps()
+		require.NoError(err)
+		for _, dep := range deps.Deps {
+			if _, ok := libs[dep.Package]; !ok {
+				libs[dep.Package] = dep
+			}
+		}
+	}
+
+	// tags := make(i.LibMapWithTags, len(libs))
+	// for pkg := range libs {
+	// 	lib, err := lib.New(pkg, provDetector)
+	// 	require.NoError(err)
+	// 	lig.Tags()
+	// }
+
+	deps, err := apps[0].Deps()
+	require.NoError(err)
+
+	fmt.Printf("len(deps) = %+v\n", len(deps.Deps))
+	require.Len(deps.Deps, 5)
+	// require.Equal(appDeps[0].Package, "test")
+	// require.Equal(appDeps[0].Hash, i.Hash("hash1"))
 
 }

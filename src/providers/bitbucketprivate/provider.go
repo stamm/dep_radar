@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	_ i.IApp       = &BitBucketPrivate{}
 	_ i.ITagGetter = &BitBucketPrivate{}
 	_ i.IProvider  = &BitBucketPrivate{}
 )
@@ -49,9 +48,11 @@ type FileOpts struct {
 
 type BitBucketPrivate struct {
 	project    string
-	pkg        i.Pkg
 	httpClient i.IWebClient
 	gitDomain  string
+	goGetUrl   string
+	apiUrl     string
+	mapProject map[i.Pkg]string
 }
 
 type Options struct {
@@ -60,49 +61,62 @@ type Options struct {
 	Password string
 }
 
-func New(pkg i.Pkg, httpClient i.IWebClient, gitDomain string) (*BitBucketPrivate, error) {
+func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *BitBucketPrivate {
 	return &BitBucketPrivate{
-		pkg:        pkg,
 		httpClient: httpClient,
+		goGetUrl:   goGetUrl,
 		gitDomain:  gitDomain,
-	}, nil
+		apiUrl:     apiUrl,
+		mapProject: make(map[i.Pkg]string),
+	}
 }
 
-func (a *BitBucketPrivate) Package() i.Pkg {
-	return a.pkg
-}
-
-func (a *BitBucketPrivate) File(name string) ([]byte, error) {
-	a.setProject()
-	url := fmt.Sprintf("projects/%s/repos/%s/raw/%s", a.project, a.repoName(), name)
-	fmt.Printf("url = %+v\n", url)
+func (a *BitBucketPrivate) File(pkg i.Pkg, name string) ([]byte, error) {
+	project, err := a.getProject(pkg)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s", a.apiUrl, project, a.repoName(pkg), name)
 	return a.httpClient.Get(url)
 }
 
-func (a *BitBucketPrivate) setProject() {
-	if a.project != "" {
-		return
+func (a *BitBucketPrivate) GoGetUrl() string {
+	return a.goGetUrl
+}
+
+// todo cache result in map
+func (a *BitBucketPrivate) getProject(pkg i.Pkg) (string, error) {
+	if project, ok := a.mapProject[pkg]; ok {
+		return project, nil
 	}
-	project, err := GetProject(a, a.gitDomain)
+	// if a.project != "" {
+	// 	return nil
+	// }
+	project, err := GetProject(a.httpClient, pkg, a.gitDomain)
 	if err != nil {
-		return
+		return "", err
 	}
+	a.mapProject[pkg] = project
 	// fmt.Printf("project = %+v\n", project)
-	a.project = project
+	// a.project = project
+	return project, nil
 }
 
 // Tags get tags from bitbucket
-func (a *BitBucketPrivate) Tags() ([]i.Tag, error) {
-	a.setProject()
+func (a *BitBucketPrivate) Tags(pkg i.Pkg) ([]i.Tag, error) {
+	project, err := a.getProject(pkg)
+	if err != nil {
+		return nil, err
+	}
 	var (
 		tagsResult []i.Tag
 		start      int
 		isLastPage bool
 	)
 	for !isLastPage {
-		tags, err := a.tags(start)
+		tags, err := a.tags(pkg, project, start)
 		if err != nil {
-			return tagsResult, fmt.Errorf("Error on getting tags %s\n", err)
+			return tagsResult, fmt.Errorf("Error on getting tags: %s", err)
 		}
 		for _, tag := range tags.Values {
 			tagVersion := strings.Replace(tag.ID, "refs/tags/", "", 1)
@@ -114,9 +128,9 @@ func (a *BitBucketPrivate) Tags() ([]i.Tag, error) {
 	return tagsResult, nil
 }
 
-func (a *BitBucketPrivate) tags(start int) (TagsResponse, error) {
+func (a *BitBucketPrivate) tags(pkg i.Pkg, project string, start int) (TagsResponse, error) {
 	var tags TagsResponse
-	url := fmt.Sprintf("rest/api/1.0/projects/%s/repos/%s/tags?start=%d", a.project, a.repoName(), start)
+	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", a.apiUrl, project, a.repoName(pkg), start)
 	reposResponse, err := a.httpClient.Get(url)
 	if err != nil {
 		return tags, err
@@ -126,8 +140,8 @@ func (a *BitBucketPrivate) tags(start int) (TagsResponse, error) {
 	return tags, err
 }
 
-func (a *BitBucketPrivate) repoName() string {
-	strpkg := string(a.pkg)
+func (a *BitBucketPrivate) repoName(pkg i.Pkg) string {
+	strpkg := string(pkg)
 	pos := strings.Index(strpkg, "/")
 	if pos == -1 {
 		return strpkg

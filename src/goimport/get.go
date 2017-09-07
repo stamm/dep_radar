@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/stamm/dep_radar/src/http"
+	i "github.com/stamm/dep_radar/interfaces"
 )
 
 // metaImport represents the parsed <meta name="go-import"
@@ -20,9 +20,10 @@ type metaSource struct {
 	Prefix, Main, Dir, File string
 }
 
-func GetImports(url string) ([]metaImport, error) {
-	client := http.NewClient(http.Options{}, 10)
-	resp, err := client.Get("https://" + url + "?go-get=1")
+func GetImports(client i.IWebClient, url string) ([]metaImport, error) {
+	fullUrl := "https://" + url + "?go-get=1"
+	// fmt.Printf("fullUrl = %+v\n", fullUrl)
+	resp, err := client.Get(fullUrl)
 	if err != nil {
 		return nil, err
 	}

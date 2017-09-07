@@ -6,75 +6,82 @@ import (
 
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/interfaces/mocks"
+	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/deps/glide"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGithubRepo_GetUrl(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
-	app, err := New("github.com/Masterminds/glide", &mocks.IWebClient{})
-	assert.NoError(err)
-	url := app.makeURL("glide.lock")
-	assert.Equal(url, "Masterminds/glide/master/glide.lock")
-}
-
-func TestGithubRepo_WrongPackage(t *testing.T) {
-	t.Parallel()
-	assert := assert.New(t)
-
-	_, err := New("gopkg.in/yaml.v2", &mocks.IWebClient{})
-	assert.EqualError(err, "package gopkg.in/yaml.v2 is not for github")
+	prov := New(&mocks.IWebClient{})
+	url := prov.makeURL(i.Pkg("github.com/Masterminds/glide"), "glide.lock")
+	require.Equal("Masterminds/glide/master/glide.lock", url)
 }
 
 func TestGithubRepo_GetUrlSubpackage(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
-	app, err := New("github.com/stretchr/testify/assert", &mocks.IWebClient{})
-	assert.NoError(err)
-	url := app.makeURL("doc.go")
-	assert.Equal(url, "stretchr/testify/master/assert/doc.go")
+	app := New(&mocks.IWebClient{})
+	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require"), "doc.go")
+	require.Equal("stretchr/testify/master/require/doc.go", url)
 }
 
 func TestGithubRepo_GetUrlWithSlash(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
-	app, err := New("github.com/stretchr/testify/assert/", &mocks.IWebClient{})
-	assert.NoError(err)
-	url := app.makeURL("doc.go")
-	assert.Equal(url, "stretchr/testify/master/assert/doc.go")
+	app := New(&mocks.IWebClient{})
+	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require/"), "doc.go")
+	require.Equal("stretchr/testify/master/require/doc.go", url)
 }
 
-func TestGithubRepo(t *testing.T) {
+func TestGithubRepo_WithDep(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
+
+	pkg := i.Pkg("github.com/Masterminds/glide")
 
 	mHttpClient := &mocks.IWebClient{}
 	mHttpClient.On("Get", "Masterminds/glide/master/glide.lock").Return([]byte(`imports:
 - name: pkg1
   version: hash1`), nil)
 
-	app, err := New("github.com/Masterminds/glide", mHttpClient)
-	assert.NoError(err)
-	assert.Equal(app.Package(), i.Pkg("github.com/Masterminds/glide"))
-	content, err := app.File("glide.lock")
-	assert.NoError(err)
-	assert.True(len(content) > 0)
+	prov := New(mHttpClient)
+	content, err := prov.File(pkg, "glide.lock")
+	require.NoError(err)
+	require.True(len(content) > 0)
 
-	appDeps, err := glide.Tool(app)
-	assert.NoError(err)
+	detector := deps.NewDetector()
+	detector.AddTool(glide.New())
+
+	app := &mocks.IApp{}
+	app.On("Provider").Return(prov)
+	app.On("Package").Return(pkg)
+
+	appDeps, err := detector.Deps(app)
+	require.NoError(err)
 	deps := appDeps.Deps
-	assert.Equal(len(deps), 1, "Expect 1 dependency")
-	assert.Equal(deps["pkg1"].Package, "pkg1")
-	assert.Equal(deps["pkg1"].Hash, i.Hash("hash1"))
+	require.Len(deps, 1, "Expect 1 dependency")
+	require.Equal(i.Pkg("pkg1"), deps["pkg1"].Package)
+	require.Equal(i.Hash("hash1"), deps["pkg1"].Hash)
 }
 
-func TestGithubTests_Ok(t *testing.T) {
+func TestGithubRepo_CheckGoGetUrl(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
+
+	require.Equal("github.com", New(&mocks.IWebClient{}).GoGetUrl())
+}
+
+// Tags
+
+func TestGithubTags_Ok(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
 	mHttpClient := &mocks.IWebClient{}
 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`[
   {
@@ -90,56 +97,75 @@ func TestGithubTests_Ok(t *testing.T) {
     }
   }
 ]`), nil)
-	tagsGetter, err := New("github.com/golang/dep", mHttpClient)
-	assert.NoError(err)
+	pkg := i.Pkg("github.com/golang/dep")
+	tagsGetter := New(mHttpClient)
 
-	tags, err := tagsGetter.Tags()
-	assert.NoError(err)
-	assert.Equal(len(tags), 2, "Expect 2 tags")
-	assert.Equal(tags[0].Version, "v0.1.0")
-	assert.Equal(tags[1].Version, "v0.2.0")
-	// assert.Equal(deps[0].Package, "pkg1")
-	// assert.Equal(deps[0].Hash, i.Hash("hash1"))
+	tags, err := tagsGetter.Tags(pkg)
+	require.NoError(err)
+	require.Len(tags, 2, "Expect 2 tags")
+	require.Equal("v0.1.0", tags[0].Version)
+	require.Equal("v0.2.0", tags[1].Version)
 }
 
 func TestGithubTags_Error(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
+
 	mHttpClient := &mocks.IWebClient{}
 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return(nil, errors.New("error"))
-	tagsGetter, err := New("github.com/golang/dep", mHttpClient)
-	assert.NoError(err)
 
-	tags, err := tagsGetter.Tags()
-	assert.EqualError(err, "error")
-	assert.Equal(len(tags), 0, "Expect 0 tags")
+	pkg := i.Pkg("github.com/golang/dep")
+	tagsGetter := New(mHttpClient)
+
+	tags, err := tagsGetter.Tags(pkg)
+	require.EqualError(err, "error")
+	require.Len(tags, 0, "Expect 0 tags")
 }
 
 func TestGithubTags_BadFile(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
-	tagsGetter, err := New("github.com/golang/dep", mHttpClient)
-	assert.NoError(err)
 
-	tags, err := tagsGetter.Tags()
-	assert.Error(err)
-	assert.Equal(len(tags), 0, "Expect 0 tags")
+	pkg := i.Pkg("github.com/golang/dep")
+	tagsGetter := New(mHttpClient)
+
+	tags, err := tagsGetter.Tags(pkg)
+	require.Error(err)
+	require.Len(tags, 0, "Expect 0 tags")
 }
 
-func TestGithubTags_WithToken(t *testing.T) {
+// HTTPWrapper
+
+func TestHTTPWrapper_WithoutToken_NoToken(t *testing.T) {
 	t.Parallel()
-	assert := assert.New(t)
+	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
+	mHttpClient.On("Get", "tags").Return([]byte(`res`), nil)
 
-	tagsGetter, err := New("github.com/golang/dep", mHttpClient)
-	assert.NoError(err)
+	client := &HTTPWrapper{
+		client: mHttpClient,
+	}
+	content, err := client.Get("tags")
+	require.NoError(err)
+	require.EqualValues("res", content)
+}
 
-	tags, err := tagsGetter.Tags()
-	assert.Error(err)
-	assert.Equal(len(tags), 0, "Expect 0 tags")
+func TestHTTPWrapper_WithToken_AddToken(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "tags?access_token=a").Return([]byte(`res`), nil)
+
+	client := &HTTPWrapper{
+		token:  "a",
+		client: mHttpClient,
+	}
+	content, err := client.Get("tags")
+	require.NoError(err)
+	require.EqualValues("res", content)
 }

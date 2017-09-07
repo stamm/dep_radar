@@ -8,22 +8,20 @@ type IApp struct {
 	mock.Mock
 }
 
-// File provides a mock function with given fields: filename
-func (_m *IApp) File(filename string) ([]byte, error) {
-	ret := _m.Called(filename)
+// Deps provides a mock function with given fields:
+func (_m *IApp) Deps() (interfaces.AppDeps, error) {
+	ret := _m.Called()
 
-	var r0 []byte
-	if rf, ok := ret.Get(0).(func(string) []byte); ok {
-		r0 = rf(filename)
+	var r0 interfaces.AppDeps
+	if rf, ok := ret.Get(0).(func() interfaces.AppDeps); ok {
+		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
+		r0 = ret.Get(0).(interfaces.AppDeps)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(filename)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -40,6 +38,22 @@ func (_m *IApp) Package() interfaces.Pkg {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(interfaces.Pkg)
+	}
+
+	return r0
+}
+
+// Provider provides a mock function with given fields:
+func (_m *IApp) Provider() interfaces.IProvider {
+	ret := _m.Called()
+
+	var r0 interfaces.IProvider
+	if rf, ok := ret.Get(0).(func() interfaces.IProvider); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interfaces.IProvider)
+		}
 	}
 
 	return r0

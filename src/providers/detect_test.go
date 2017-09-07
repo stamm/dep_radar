@@ -13,10 +13,10 @@ func TestDetect_ExpectGithub(t *testing.T) {
 	assert := assert.New(t)
 
 	detect := DefaultDetector()
-	app, err := detect.Detect(i.Pkg("github.com/golang/dep"))
+	prov, err := detect.Detect(i.Pkg("github.com/golang/dep"))
 	assert.NoError(err)
-	assert.IsType(github.Github{}, app)
-	assert.Implements((*i.IProvider)(nil), app)
+	assert.IsType(&github.Github{}, prov)
+	assert.Implements((*i.IProvider)(nil), prov)
 }
 
 func TestDetect_ExpectError(t *testing.T) {

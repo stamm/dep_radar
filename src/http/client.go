@@ -76,6 +76,7 @@ func (c *Client) Get(uri string) ([]byte, error) {
 	if c.Options.URL != "" {
 		url = strings.Trim(c.Options.URL, "/") + "/" + uri
 	}
+	// fmt.Printf("url = %+v\n", url)
 	req, err := stdhttp.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -83,6 +84,7 @@ func (c *Client) Get(uri string) ([]byte, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 	if c.Options.User != "" && c.Options.Password != "" {
+		// fmt.Println("USER!")
 		req.SetBasicAuth(c.Options.User, c.Options.Password)
 	}
 

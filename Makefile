@@ -3,7 +3,10 @@ MIN_GO_VERSION:=1.9
 DEP_VERSION=v0.3.0
 DEP_BIN=$(GOPATH)/bin/dep-$(DEP_VERSION)
 TMP_DIR=tmp/
-COVERAGE_FILE=$(TMP_DIR)/coverage.txt
+COVERAGE_FILE=$(TMP_DIR)coverage.txt
+PKGS=$(shell go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./...)
+
+PARALLEL_COUNT?=$(shell getconf _NPROCESSORS_ONLN) #CPU cores
 
 GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')
 IS_DESIRE_VERSION = $(shell expr $(GOVER) \>= $(MIN_GO_VERSION))
@@ -14,6 +17,10 @@ endif
 .PHONY: test
 test:
 	env GOGC=off go test $(TEST_ARGS) ./...
+
+.PHONY: test
+test-race:
+	env GOGC=off go test -race $(TEST_ARGS) ./...
 
 .PHONY: generate
 generate:
@@ -34,18 +41,20 @@ deps: $(DEP_BIN)
 
 
 
-coverage: $(COVERAGE_FILE)
+.PHONY: coverage
+coverage: 
+	rm -f $(COVERAGE_FILE)
+	make -j $(PARALLEL_COUNT) $(PKGS)
 
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
 
-# PKGS=$(go list ./... | grep -v /vendor/)
-$(COVERAGE_FILE): $(TMP_DIR)
-	$(eval PKGS = $(shell go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./...))
-	for pkg in $(PKGS); do \
-		go test -race -coverprofile=$(TMP_DIR)profile.out -covermode=atomic $$pkg; \
-		if [[ -f $(TMP_DIR)profile.out ]]; then \
-			cat $(TMP_DIR)profile.out >> $(COVERAGE_FILE) ;\
-			rm $(TMP_DIR)profile.out ;\
-		fi \
-	done
+.PHONY: $(PKGS)
+$(PKGS): $(TMP_DIR)
+	$(eval prof_path = $(GOPATH)/src/$@/profile.out)
+	@go test -race -coverprofile=$(prof_path) -covermode=atomic $@; 
+	@if [[ -f $(prof_path) ]]; then \
+		cat $(prof_path) >> $(COVERAGE_FILE) ;\
+		rm $(prof_path) ;\
+	fi \
+

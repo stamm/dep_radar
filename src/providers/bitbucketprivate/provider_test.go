@@ -6,6 +6,8 @@ import (
 
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/interfaces/mocks"
+	"github.com/stamm/dep_radar/src/deps"
+	"github.com/stamm/dep_radar/src/deps/glide"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,110 +54,116 @@ func TestBBRepo_SetProjectWithError(t *testing.T) {
 	require.Equal("", project)
 }
 
-// func TestGithubRepo_WithDep(t *testing.T) {
-// 	t.Parallel()
-// 	require := require.New(t)
+func TestBBRepo_WithDep(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
-// 	pkg := i.Pkg("github.com/Masterminds/glide")
+	pkg := i.Pkg("godep.example.com/app")
 
-// 	mHttpClient := &mocks.IWebClient{}
-// 	mHttpClient.On("Get", "Masterminds/glide/master/glide.lock").Return([]byte(`imports:
-// - name: pkg1
-//   version: hash1`), nil)
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "https://bitbucket.example.com/projects/go/repos/app/raw/glide.lock").Return([]byte(`imports:
+- name: pkg1
+  version: hash1`), nil)
 
-// 	prov := New(mHttpClient)
-// 	content, err := prov.File(pkg, "glide.lock")
-// 	require.NoError(err)
-// 	require.True(len(content) > 0)
+	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	prov.mapProject[pkg] = "go"
+	content, err := prov.File(pkg, "glide.lock")
+	require.NoError(err)
+	require.True(len(content) > 0)
 
-// 	detector := deps.NewDetector()
-// 	detector.AddTool(glide.New())
+	detector := deps.NewDetector()
+	detector.AddTool(glide.New())
 
-// 	app := &mocks.IApp{}
-// 	app.On("Provider").Return(prov)
-// 	app.On("Package").Return(pkg)
+	app := &mocks.IApp{}
+	app.On("Provider").Return(prov)
+	app.On("Package").Return(pkg)
 
-// 	appDeps, err := detector.Deps(app)
-// 	require.NoError(err)
-// 	deps := appDeps.Deps
-// 	require.Len(deps, 1, "Expect 1 dependency")
-// 	require.Equal(i.Pkg("pkg1"), deps["pkg1"].Package)
-// 	require.Equal(i.Hash("hash1"), deps["pkg1"].Hash)
-// }
+	appDeps, err := detector.Deps(app)
+	require.NoError(err)
+	deps := appDeps.Deps
+	require.Len(deps, 1, "Expect 1 dependency")
+	require.Equal(i.Pkg("pkg1"), deps["pkg1"].Package)
+	require.Equal(i.Hash("hash1"), deps["pkg1"].Hash)
+}
 
-// func TestGithubTests_Ok(t *testing.T) {
-// 	t.Parallel()
-// 	require := require.New(t)
+// Tags
 
-// 	mHttpClient := &mocks.IWebClient{}
-// 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`[
-//   {
-//     "name": "v0.1.0",
-//     "commit": {
-//       "sha": "05c40eba7fa5512c3a161e4e9df6c8fefde75158"
-//     }
-//   },
-//   {
-//     "name": "v0.2.0",
-//     "commit": {
-//       "sha": "6a17782ed25ba4ccd2adf191990cc32e65c3934c"
-//     }
-//   }
-// ]`), nil)
-// 	pkg := i.Pkg("github.com/golang/dep")
-// 	tagsGetter := New(mHttpClient)
+func TestBBTags_Ok(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
-// 	tags, err := tagsGetter.Tags(pkg)
-// 	require.NoError(err)
-// 	require.Len(tags, 2, "Expect 2 tags")
-// 	require.Equal("v0.1.0", tags[0].Version)
-// 	require.Equal("v0.2.0", tags[1].Version)
-// }
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/go/repos/app/tags?start=0").Return([]byte(`
+ {"size":25,"limit":25,"isLastPage":true,"values":[
+ {"id":"refs/tags/v0.1.0","displayId":"10.4.0","type":"TAG","latestCommit":"5d6de801e6bb31eb1086adf3604570693580f141","latestChangeset":"5d6de801e6bb31eb1086adf3604570693580f141","hash":null},
+ {"id":"refs/tags/v0.2.0","displayId":"10.4.0","type":"TAG","latestCommit":"5d6de801e6bb31eb1086adf3604570693580f141","latestChangeset":"5d6de801e6bb31eb1086adf3604570693580f141","hash":null}
+ ],"start":0} `), nil)
+	pkg := i.Pkg("godep.example.com/app")
+	tagsGetter := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	tagsGetter.mapProject[pkg] = "go"
 
-// func TestGithubTags_Error(t *testing.T) {
-// 	t.Parallel()
-// 	require := require.New(t)
+	tags, err := tagsGetter.Tags(pkg)
+	require.NoError(err)
+	require.Len(tags, 2, "Expect 2 tags")
+	require.Equal("v0.1.0", tags[0].Version)
+	require.Equal("v0.2.0", tags[1].Version)
+}
 
-// 	mHttpClient := &mocks.IWebClient{}
-// 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return(nil, errors.New("error"))
+func TestBBTags_TwoPages(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
-// 	pkg := i.Pkg("github.com/golang/dep")
-// 	tagsGetter := New(mHttpClient)
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/go/repos/app/tags?start=0").Return([]byte(`
+ {"size":1,"limit":1,"isLastPage":false,"values":[
+ {"id":"refs/tags/v0.1.0","displayId":"10.4.0","type":"TAG","latestCommit":"5d6de801e6bb31eb1086adf3604570693580f141","latestChangeset":"5d6de801e6bb31eb1086adf3604570693580f141","hash":null}
+ ],"start":0,"nextPageStart":1} `), nil)
+	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/go/repos/app/tags?start=1").Return([]byte(`
+ {"size":1,"limit":1,"isLastPage":true,"values":[
+ {"id":"refs/tags/v0.2.0","displayId":"10.4.0","type":"TAG","latestCommit":"5d6de801e6bb31eb1086adf3604570693580f141","latestChangeset":"5d6de801e6bb31eb1086adf3604570693580f141","hash":null}
+ ],"start":1} `), nil)
+	pkg := i.Pkg("godep.example.com/app")
+	tagsGetter := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	tagsGetter.mapProject[pkg] = "go"
 
-// 	tags, err := tagsGetter.Tags(pkg)
-// 	require.EqualError(err, "error")
-// 	require.Len(tags, 0, "Expect 0 tags")
-// }
+	tags, err := tagsGetter.Tags(pkg)
+	require.NoError(err)
+	require.Len(tags, 2, "Expect 2 tags")
+	require.Equal("v0.1.0", tags[0].Version)
+	require.Equal("v0.2.0", tags[1].Version)
+}
 
-// func TestGithubTags_BadFile(t *testing.T) {
-// 	t.Parallel()
-// 	require := require.New(t)
+func TestGithubTags_Error(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
-// 	mHttpClient := &mocks.IWebClient{}
-// 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/go/repos/app/tags?start=0").Return(nil, errors.New("error"))
 
-// 	pkg := i.Pkg("github.com/golang/dep")
-// 	tagsGetter := New(mHttpClient)
+	pkg := i.Pkg("godep.example.com/app")
+	tagsGetter := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	tagsGetter.mapProject[pkg] = "go"
 
-// 	tags, err := tagsGetter.Tags(pkg)
-// 	require.Error(err)
-// 	require.Len(tags, 0, "Expect 0 tags")
-// }
+	tags, err := tagsGetter.Tags(pkg)
+	require.EqualError(err, "Error on getting tags: error")
+	require.Len(tags, 0, "Expect 0 tags")
+}
 
-// func TestGithubTags_WithToken(t *testing.T) {
-// 	t.Parallel()
-// 	require := require.New(t)
+func TestBBTags_BadFile(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
 
-// 	mHttpClient := &mocks.IWebClient{}
-// 	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
+	mHttpClient := &mocks.IWebClient{}
+	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/go/repos/app/tags?start=0").Return([]byte(`{`), nil)
 
-// 	pkg := i.Pkg("github.com/golang/dep")
-// 	tagsGetter := New(mHttpClient)
+	pkg := i.Pkg("godep.example.com/app")
+	tagsGetter := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
+	tagsGetter.mapProject[pkg] = "go"
 
-// 	tags, err := tagsGetter.Tags(pkg)
-// 	require.Error(err)
-// 	require.Len(tags, 0, "Expect 0 tags")
-// }
+	tags, err := tagsGetter.Tags(pkg)
+	require.Error(err)
+	require.Len(tags, 0, "Expect 0 tags")
+}
 
 func TestBBRepo_CheckGoGetUrl(t *testing.T) {
 	t.Parallel()

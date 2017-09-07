@@ -137,21 +137,6 @@ func TestGithubTags_BadFile(t *testing.T) {
 	require.Len(tags, 0, "Expect 0 tags")
 }
 
-func TestGithubTags_WithToken(t *testing.T) {
-	t.Parallel()
-	require := require.New(t)
-
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
-
-	pkg := i.Pkg("github.com/golang/dep")
-	tagsGetter := New(mHttpClient)
-
-	tags, err := tagsGetter.Tags(pkg)
-	require.Error(err)
-	require.Len(tags, 0, "Expect 0 tags")
-}
-
 // HTTPWrapper
 
 func TestHTTPWrapper_WithoutToken_NoToken(t *testing.T) {

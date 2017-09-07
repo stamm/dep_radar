@@ -18,6 +18,10 @@ endif
 test:
 	env GOGC=off go test $(TEST_ARGS) ./...
 
+.PHONY: test
+test-race:
+	env GOGC=off go test -race $(TEST_ARGS) ./...
+
 .PHONY: generate
 generate:
 	go generate $(TEST_ARGS) ./...

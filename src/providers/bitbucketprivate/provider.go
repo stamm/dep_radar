@@ -116,7 +116,7 @@ func (a *BitBucketPrivate) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	for !isLastPage {
 		tags, err := a.tags(pkg, project, start)
 		if err != nil {
-			return tagsResult, fmt.Errorf("Error on getting tags %s\n", err)
+			return tagsResult, fmt.Errorf("Error on getting tags: %s", err)
 		}
 		for _, tag := range tags.Values {
 			tagVersion := strings.Replace(tag.ID, "refs/tags/", "", 1)

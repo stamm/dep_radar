@@ -10,32 +10,32 @@ import (
 )
 
 var (
-	ErrNoProvider = errors.New("No provider")
+	ErrNoProvider             = errors.New("No provider")
+	_             i.IDetector = &Detector{}
 )
 
-type Provider struct {
-	GitUrl   string
-	GoGetUrl string
-	Fn       func(i.Pkg) (i.IProvider, error)
-}
-
 type Detector struct {
-	Providers []Provider
+	Providers []i.IProvider
+	DepTools  []i.IDepTool
 }
 
 func NewDetector() *Detector {
 	return &Detector{}
 }
 
-func (d *Detector) AddProvider(prov Provider) {
+func (d *Detector) AddProvider(prov i.IProvider) {
 	d.Providers = append(d.Providers, prov)
+}
+
+func (d *Detector) AddDepTool(tool i.IDepTool) {
+	d.DepTools = append(d.DepTools, tool)
 }
 
 func (d *Detector) Detect(pkg i.Pkg) (i.IProvider, error) {
 	url := string(pkg)
 	for _, prov := range d.Providers {
-		if strings.HasPrefix(url, prov.GoGetUrl) {
-			return prov.Fn(pkg)
+		if strings.HasPrefix(url, prov.GoGetUrl()) {
+			return prov, nil
 		}
 	}
 	return nil, ErrNoProvider
@@ -45,12 +45,6 @@ func DefaultDetector() *Detector {
 	githubClient := github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 2)
 
 	defaultDetector := NewDetector()
-	defaultDetector.AddProvider(Provider{
-		GitUrl:   "github.com",
-		GoGetUrl: "github.com",
-		Fn: func(pkg i.Pkg) (i.IProvider, error) {
-			return github.New(pkg, githubClient)
-		},
-	})
+	defaultDetector.AddProvider(github.New(githubClient))
 	return defaultDetector
 }

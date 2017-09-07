@@ -2,7 +2,6 @@ package github
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -16,7 +15,6 @@ const (
 
 var (
 	_ i.ITagGetter = &Github{}
-	_ i.IApp       = &Github{}
 	_ i.IProvider  = &Github{}
 	_ i.IWebClient = &HTTPWrapper{}
 )
@@ -31,7 +29,6 @@ type commit struct {
 }
 
 type Github struct {
-	pkg    i.Pkg
 	token  string
 	client i.IWebClient
 }
@@ -57,32 +54,24 @@ func (c *HTTPWrapper) Get(url string) ([]byte, error) {
 	return c.client.Get(url)
 }
 
-func New(pkg i.Pkg, client i.IWebClient) (Github, error) {
-	if strings.Index(string(pkg), Prefix) != 0 {
-		return Github{}, fmt.Errorf("package %s is not for github", pkg)
-	}
-	return Github{
-		pkg:    pkg,
+func New(client i.IWebClient) *Github {
+	return &Github{
 		client: client,
-	}, nil
+	}
 }
 
-func (g Github) Tags() ([]i.Tag, error) {
-	return g.tagsHttp()
+func (g Github) Tags(pkg i.Pkg) ([]i.Tag, error) {
+	return g.tagsHttp(pkg)
 }
 
-func (g Github) Package() i.Pkg {
-	return g.pkg
+func (g Github) File(pkg i.Pkg, name string) ([]byte, error) {
+	return g.client.Get(g.makeURL(pkg, name))
 }
 
-func (g Github) File(name string) ([]byte, error) {
-	return g.client.Get(g.makeURL(name))
-}
-
-func (g Github) makeURL(name string) string {
-	pkg := strings.Trim(string(g.pkg), "/")
+func (g Github) makeURL(pkg i.Pkg, name string) string {
+	pkgName := strings.Trim(string(pkg), "/")
 	re := regexp.MustCompile("^" + regexp.QuoteMeta(Prefix) + "/")
-	repo := re.ReplaceAllString(pkg, "")
+	repo := re.ReplaceAllString(pkgName, "")
 	parts := strings.SplitN(repo, "/", 3)
 	url := strings.Join(parts[:2], "/") + "/master/"
 	if len(parts) > 2 {
@@ -92,8 +81,12 @@ func (g Github) makeURL(name string) string {
 	return url
 }
 
-func (g Github) tagsHttp() ([]i.Tag, error) {
-	url := "https://api.github.com/repos/" + getPkgName(g.pkg) + "/tags"
+func (g Github) GoGetUrl() string {
+	return Prefix
+}
+
+func (g Github) tagsHttp(pkg i.Pkg) ([]i.Tag, error) {
+	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags"
 	content, err := g.client.Get(url)
 	if err != nil {
 		return nil, err

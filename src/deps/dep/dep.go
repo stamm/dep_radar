@@ -13,8 +13,10 @@ const (
 )
 
 var (
-	_ i.IDepStrategy = Tool
+	_ i.IDepTool = &Tool{}
 )
+
+type Tool struct{}
 
 type rawLock struct {
 	Projects []rawLockedProject `toml:"projects"`
@@ -29,11 +31,15 @@ type rawLockedProject struct {
 	Packages []string `toml:"packages"`
 }
 
-func Tool(a i.IApp) (i.AppDeps, error) {
+func (t *Tool) Name() string {
+	return "dep"
+}
+
+func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.DepManager,
 	}
-	content, err := a.File(file)
+	content, err := a.Provider().File(a.Package(), file)
 	if err != nil {
 		return res, err
 	}
@@ -51,10 +57,14 @@ func Tool(a i.IApp) (i.AppDeps, error) {
 	for _, imp := range raw.Projects {
 		// fmt.Printf("imp.Name = %+v\n", imp.Name)
 		res.Deps[i.Pkg(imp.Name)] = i.Dep{
-			Package: imp.Name,
+			Package: i.Pkg(imp.Name),
 			Hash:    i.Hash(imp.Revision),
 		}
 	}
 	// fmt.Printf("deps = %+v\n", deps)
 	return res, nil
+}
+
+func New() *Tool {
+	return &Tool{}
 }

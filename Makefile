@@ -3,7 +3,7 @@ MIN_GO_VERSION:=1.9
 DEP_VERSION=v0.3.0
 DEP_BIN=$(GOPATH)/bin/dep-$(DEP_VERSION)
 TMP_DIR=tmp/
-COVERAGE_FILE=$(TMP_DIR)/coverage.txt
+COVERAGE_FILE=$(TMP_DIR)coverage.txt
 
 GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')
 IS_DESIRE_VERSION = $(shell expr $(GOVER) \>= $(MIN_GO_VERSION))
@@ -34,6 +34,7 @@ deps: $(DEP_BIN)
 
 
 
+.PHONY: coverage
 coverage: $(COVERAGE_FILE)
 
 $(TMP_DIR):

@@ -9,14 +9,20 @@ import (
 )
 
 var (
-	_ i.IDepStrategy = Tool
+	_ i.IDepTool = &Tool{}
 )
 
-func Tool(a i.IApp) (i.AppDeps, error) {
+type Tool struct{}
+
+func (t *Tool) Name() string {
+	return "glide"
+}
+
+func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.GlideManager,
 	}
-	content, err := a.File(path.LockFile)
+	content, err := a.Provider().File(a.Package(), path.LockFile)
 	if err != nil {
 		return res, err
 	}
@@ -34,10 +40,14 @@ func Tool(a i.IApp) (i.AppDeps, error) {
 	for _, imp := range lockFile.Imports {
 		// fmt.Printf("imp.Name = %+v\n", imp.Name)
 		res.Deps[i.Pkg(imp.Name)] = i.Dep{
-			Package: imp.Name,
+			Package: i.Pkg(imp.Name),
 			Hash:    i.Hash(imp.Version),
 		}
 	}
 	// fmt.Printf("deps = %+v\n", deps)
 	return res, nil
+}
+
+func New() *Tool {
+	return &Tool{}
 }

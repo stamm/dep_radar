@@ -1,4 +1,4 @@
-package custom
+package bitbucketprivate
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	i "github.com/stamm/dep_radar/interfaces"
 )
 
-type ReposResponse struct {
+type reposResponse struct {
 	IsLastPage    bool        `json:"isLastPage"`
 	Values        []RepoValue `json:"values"`
 	NextPageStart int         `json:"nextPageStart"`
@@ -20,12 +20,10 @@ type RepoValue struct {
 }
 
 // GetRepos get repos
-func GetRepos(ctx context.Context, start int) (ReposResponse, error) {
-	var (
-		repos ReposResponse
-	)
-	url := fmt.Sprintf("rest/api/1.0/projects/%s/repos?start=%d", "GO", start)
-	reposResponse, err := bbClient.Get(url)
+func (a *BitBucketPrivate) getRepos(ctx context.Context, project string, start int) (reposResponse, error) {
+	var repos reposResponse
+	url := fmt.Sprintf("https://%s/rest/api/1.0/projects/%s/repos?start=%d", a.gitDomain, project, start)
+	reposResponse, err := a.httpClient.Get(url)
 	if err != nil {
 		return repos, err
 	}
@@ -34,7 +32,7 @@ func GetRepos(ctx context.Context, start int) (ReposResponse, error) {
 	return repos, err
 }
 
-func GetAllRepos(ctx context.Context) ([]i.Pkg, error) {
+func (a *BitBucketPrivate) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, error) {
 	var (
 		resultRepos []i.Pkg
 		start       int
@@ -42,13 +40,12 @@ func GetAllRepos(ctx context.Context) ([]i.Pkg, error) {
 	)
 
 	for !isLastPage {
-		fmt.Println("Do!")
-		repos, err := GetRepos(ctx, start)
+		repos, err := a.getRepos(ctx, project, start)
 		if err != nil {
 			return resultRepos, err
 		}
 		for _, repo := range repos.Values {
-			resultRepos = append(resultRepos, i.Pkg(bbGoGetUrl+"/"+repo.Slug))
+			resultRepos = append(resultRepos, i.Pkg(a.goGetUrl+"/"+repo.Slug))
 		}
 		isLastPage = repos.IsLastPage
 		start = repos.NextPageStart

@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	i "github.com/stamm/dep_radar/interfaces"
-	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/providers"
 )
 
@@ -56,14 +55,13 @@ func GetTags(apps []i.IApp, detector *providers.Detector) (i.AppListWithDeps, i.
 
 func depsChan(apps []i.IApp) chan Lib {
 	ch := make(chan Lib, 100)
-	depTools := deps.DefaultTools()
 	go func() {
 		var wg sync.WaitGroup
 		for _, app := range apps {
 			wg.Add(1)
 			go func(app i.IApp) {
 				defer wg.Done()
-				deps, err := depTools.Deps(app)
+				deps, err := app.Deps()
 				if err != nil {
 					log.Printf("err for app %s: %+v\n", app.Package(), err)
 					return
@@ -91,7 +89,7 @@ func getTagsForLib(pkg i.Pkg, detector *providers.Detector) ([]i.Tag, error) {
 		}
 		return nil, err
 	}
-	tagList, err := tagsGetter.Tags()
+	tagList, err := tagsGetter.Tags(pkg)
 	if err != nil {
 		log.Printf("err for pkg %q from tag getter: %s", pkg, err)
 		return nil, err

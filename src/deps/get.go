@@ -9,23 +9,22 @@ import (
 	"github.com/stamm/dep_radar/src/deps/glide"
 )
 
-type Tools struct {
-	Tools []Tool
+var (
+	_ i.IDepDetector = &Detector{}
+)
+
+type Detector struct {
+	Tools []i.IDepTool
 }
 
-type Tool struct {
-	Name string
-	Fn   func(i.IApp) (i.AppDeps, error)
+func (d *Detector) AddTool(tool i.IDepTool) {
+	d.Tools = append(d.Tools, tool)
 }
 
-func (d *Tools) AddTool(prov Tool) {
-	d.Tools = append(d.Tools, prov)
-}
-
-func (d *Tools) Deps(app i.IApp) (i.AppDeps, error) {
+func (d *Detector) Deps(app i.IApp) (i.AppDeps, error) {
 	var errs []string
 	for _, tool := range d.Tools {
-		deps, err := tool.Fn(app)
+		deps, err := tool.Deps(app)
 		if err == nil {
 			// fmt.Printf("deps = %+v\n", deps)
 			return deps, nil
@@ -39,19 +38,13 @@ func (d *Tools) Deps(app i.IApp) (i.AppDeps, error) {
 	return i.AppDeps{}, errors.New("Bad")
 }
 
-func NewTools() *Tools {
-	return &Tools{}
+func NewDetector() *Detector {
+	return &Detector{}
 }
 
-func DefaultTools() *Tools {
-	depTool := &Tools{}
-	depTool.AddTool(Tool{
-		Name: "dep",
-		Fn:   dep.Tool,
-	})
-	depTool.AddTool(Tool{
-		Name: "glide",
-		Fn:   glide.Tool,
-	})
-	return depTool
+func DefaultDetector() *Detector {
+	detector := &Detector{}
+	detector.AddTool(dep.New())
+	detector.AddTool(glide.New())
+	return detector
 }

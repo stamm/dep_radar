@@ -9,6 +9,7 @@ script:
   - make coverage
 after_success:
   - codeclimate-test-reporter < ./tmp/coverage.txt
+  - bash <(curl -s https://codecov.io/bash)
 cache:
   directories:
     - $GOPATH/bin

@@ -23,8 +23,5 @@ required = ["github.com/vektra/mockery"]
 
 [[constraint]]
   name = "github.com/Masterminds/glide"
-  version = "=0.12.3"
+  version = "=0.13.1"
 
-[[constraint]]
-  name = "github.com/pelletier/go-toml"
-  version = "1.0.0"

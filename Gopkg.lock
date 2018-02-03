@@ -9,21 +9,40 @@
 
 [[projects]]
   name = "github.com/Masterminds/glide"
-  packages = ["cfg","godep/strip","mirrors","msg","path","util"]
-  revision = "84607742b10f492430762d038e954236bbaf23f7"
-  version = "v0.12.3"
+  packages = [
+    "cfg",
+    "godep/strip",
+    "mirrors",
+    "msg",
+    "path",
+    "util"
+  ]
+  revision = "67790b3dbede72cfdc54aa53be4706322c9499e0"
+  version = "v0.13.1"
+
+[[projects]]
+  name = "github.com/Masterminds/semver"
+  packages = ["."]
+  revision = "15d8430ab86497c5c0da827b748823945e1cf1e1"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/Masterminds/vcs"
   packages = ["."]
-  revision = "3084677c2c188840777bff30054f2b553729d329"
-  version = "v1.11.1"
+  revision = "6f1c6d150500e452704e9863f68c2559f58616bf"
+  version = "v1.12.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -38,16 +57,20 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/stretchr/objx"
   packages = ["."]
-  revision = "1a9d0bb9f541897e62256577b352fdbc1fb4fd94"
+  revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
+  version = "v0.1"
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert","mock"]
-  revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
-  version = "v1.1.4"
+  packages = [
+    "assert",
+    "mock",
+    "require"
+  ]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
@@ -59,11 +82,11 @@
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "44eacb7a2610b661755753edcc1fae40582a1c619dcf90cffb7d5acb77e4d6a4"
+  inputs-digest = "fc0fc99f62db72f67aa613970877776ec012b239d40cc6644ed019e83250ee0b"
   solver-name = "gps-cdcl"
   solver-version = 1

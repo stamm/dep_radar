@@ -50,7 +50,7 @@ func TestIntegration_Github(t *testing.T) {
 
 	appDeps, err := app.Deps()
 	require.NoError(err)
-	require.Len(appDeps.Deps, 1)
+	require.Len(appDeps.Deps, 4)
 	require.Contains(appDeps.Deps, i.Pkg("github.com/pkg/errors"))
 	require.Equal(i.Hash("645ef00459ed84a119197bfb8d8205042c6df63d"), appDeps.Deps[i.Pkg("github.com/pkg/errors")].Hash)
 	require.Equal("v0.8.0", appDeps.Deps[i.Pkg("github.com/pkg/errors")].Version)

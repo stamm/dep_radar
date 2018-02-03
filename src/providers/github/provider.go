@@ -2,6 +2,8 @@ package github
 
 import (
 	"encoding/json"
+	"fmt"
+	urlpkg "net/url"
 	"regexp"
 	"strings"
 
@@ -40,16 +42,21 @@ type HTTPWrapper struct {
 
 func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 	return &HTTPWrapper{
-		token: token,
-		client: http.NewClient(http.Options{
-			URL: "https://raw.githubusercontent.com/",
-		}, 10),
+		token:  token,
+		client: http.NewClient(http.Options{}, 10),
 	}
 }
 
 func (c *HTTPWrapper) Get(url string) ([]byte, error) {
 	if c.token != "" {
-		url += "?access_token=" + c.token
+		urlObj, err := urlpkg.Parse(url)
+		if err == nil {
+			if len(urlObj.Query()) == 0 {
+				url += "?access_token=" + c.token
+			} else {
+				url += "&access_token=" + c.token
+			}
+		}
 	}
 	return c.client.Get(url)
 }
@@ -64,21 +71,21 @@ func (g Github) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	return g.tagsHttp(pkg)
 }
 
-func (g Github) File(pkg i.Pkg, name string) ([]byte, error) {
-	return g.client.Get(g.makeURL(pkg, name))
+func (g Github) File(pkg i.Pkg, branch, name string) ([]byte, error) {
+	return g.client.Get(g.makeURL(pkg, branch, name))
 }
 
-func (g Github) makeURL(pkg i.Pkg, name string) string {
+func (g Github) makeURL(pkg i.Pkg, branch, name string) string {
 	pkgName := strings.Trim(string(pkg), "/")
 	re := regexp.MustCompile("^" + regexp.QuoteMeta(Prefix) + "/")
 	repo := re.ReplaceAllString(pkgName, "")
 	parts := strings.SplitN(repo, "/", 3)
-	url := strings.Join(parts[:2], "/") + "/master/"
+	url := fmt.Sprintf("%s/%s/", strings.Join(parts[:2], "/"), branch)
 	if len(parts) > 2 {
 		url += parts[2] + "/"
 	}
 	url += strings.Trim(name, "/")
-	return url
+	return "https://raw.githubusercontent.com/" + url
 }
 
 func (g Github) GoGetUrl() string {
@@ -86,7 +93,10 @@ func (g Github) GoGetUrl() string {
 }
 
 func (g Github) tagsHttp(pkg i.Pkg) ([]i.Tag, error) {
-	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags"
+	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags?per_page=100"
+	if string(pkg) == "github.com/pkg/errors" {
+		fmt.Printf("url = %+v\n", url)
+	}
 	content, err := g.client.Get(url)
 	if err != nil {
 		return nil, err

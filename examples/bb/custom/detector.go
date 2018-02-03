@@ -6,19 +6,20 @@ import (
 	"github.com/stamm/dep_radar/src/http"
 	"github.com/stamm/dep_radar/src/providers"
 	bbprivate "github.com/stamm/dep_radar/src/providers/bitbucketprivate"
+	"github.com/stamm/dep_radar/src/providers/github"
 )
 
 var (
 	bbClient   *http.Client
-	bbGitUrl   string
-	bbApiUrl   string
-	bbGoGetUrl string
+	bbGitURL   string
+	bbAPIURL   string
+	bbGoGetURL string
 )
 
 func init() {
-	bbGitUrl = os.Getenv("BB_GIT_URL")
-	bbGoGetUrl = os.Getenv("BB_GO_GET_URL")
-	bbApiUrl = "https://" + bbGitUrl
+	bbGitURL = os.Getenv("BB_GIT_URL")
+	bbGoGetURL = os.Getenv("BB_GO_GET_URL")
+	bbAPIURL = "https://" + bbGitURL
 	bbClient = http.NewClient(
 		http.Options{
 			User:     os.Getenv("BB_USER"),
@@ -26,10 +27,12 @@ func init() {
 		}, 10)
 }
 
-func Detector() (*bbprivate.BitBucketPrivate, *providers.Detector) {
-	// detector := providers.DefaultDetector()
-	bbProv := bbprivate.New(bbClient, bbGitUrl, bbGoGetUrl, bbApiUrl)
-	detector := providers.NewDetector()
-	detector.AddProvider(bbProv)
+// Detector returns bitbucket provider and detector
+func Detector() (*bbprivate.Provider, *providers.Detector) {
+	bbProv := bbprivate.New(bbClient, bbGitURL, bbGoGetURL, bbAPIURL)
+	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	detector := providers.NewDetector().
+		AddProvider(bbProv).
+		AddProvider(githubProv)
 	return bbProv, detector
 }

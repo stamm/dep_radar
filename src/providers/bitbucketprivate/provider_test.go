@@ -61,13 +61,13 @@ func TestBBRepo_WithDep(t *testing.T) {
 	pkg := i.Pkg("godep.example.com/app")
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://bitbucket.example.com/projects/go/repos/app/raw/glide.lock").Return([]byte(`imports:
+	mHttpClient.On("Get", "https://bitbucket.example.com/projects/go/repos/app/raw/glide.lock?at=refs%2Fheads%2Fmaster").Return([]byte(`imports:
 - name: pkg1
   version: hash1`), nil)
 
 	prov := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
 	prov.mapProject[pkg] = "go"
-	content, err := prov.File(pkg, "glide.lock")
+	content, err := prov.File(pkg, "master", "glide.lock")
 	require.NoError(err)
 	require.True(len(content) > 0)
 
@@ -77,6 +77,7 @@ func TestBBRepo_WithDep(t *testing.T) {
 	app := &mocks.IApp{}
 	app.On("Provider").Return(prov)
 	app.On("Package").Return(pkg)
+	app.On("Branch").Return("master")
 
 	appDeps, err := detector.Deps(app)
 	require.NoError(err)

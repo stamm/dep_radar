@@ -1,6 +1,7 @@
-<a href="https://travis-ci.org/stamm/dep_radar"><img src="https://travis-ci.org/stamm/dep_radar.svg?branch=master" alt="Build Status"></img></a>
-<a href="https://codeclimate.com/github/stamm/dep_radar"><img src="https://codeclimate.com/github/stamm/dep_radar/badges/gpa.svg" alt="Code Climate"></img></a>
-<a href="https://codeclimate.com/github/stamm/dep_radar/coverage"><img src="https://codeclimate.com/github/stamm/dep_radar/badges/coverage.svg" /></a>
+[![Travis](https://img.shields.io/travis/stamm/dep_radar.svg?style=flat-square)](https://travis-ci.org/stamm/dep_radar)
+[![Code Climate](https://img.shields.io/codeclimate/github/stamm/dep_radar.svg?style=flat-square)](https://codeclimate.com/github/stamm/dep_radar)
+[![Code Climate](https://img.shields.io/codeclimate/coverage/github/stamm/dep_radar.svg?style=flat-square)](https://codeclimate.com/github/stamm/dep_radar/coverage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/stamm/dep_radar)](https://goreportcard.com/report/github.com/stamm/dep_radar)
 
 ## Dep radar
 `dep radar` is a prototype to control Go dependencies in microservice world.

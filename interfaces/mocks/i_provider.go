@@ -8,13 +8,13 @@ type IProvider struct {
 	mock.Mock
 }
 
-// File provides a mock function with given fields: pkg, filename
-func (_m *IProvider) File(pkg interfaces.Pkg, filename string) ([]byte, error) {
-	ret := _m.Called(pkg, filename)
+// File provides a mock function with given fields: pkg, branch, filename
+func (_m *IProvider) File(pkg interfaces.Pkg, branch string, filename string) ([]byte, error) {
+	ret := _m.Called(pkg, branch, filename)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(interfaces.Pkg, string) []byte); ok {
-		r0 = rf(pkg, filename)
+	if rf, ok := ret.Get(0).(func(interfaces.Pkg, string, string) []byte); ok {
+		r0 = rf(pkg, branch, filename)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -22,8 +22,8 @@ func (_m *IProvider) File(pkg interfaces.Pkg, filename string) ([]byte, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(interfaces.Pkg, string) error); ok {
-		r1 = rf(pkg, filename)
+	if rf, ok := ret.Get(1).(func(interfaces.Pkg, string, string) error); ok {
+		r1 = rf(pkg, branch, filename)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -17,8 +17,9 @@ type Detector struct {
 	Tools []i.IDepTool
 }
 
-func (d *Detector) AddTool(tool i.IDepTool) {
+func (d *Detector) AddTool(tool i.IDepTool) i.IDepDetector {
 	d.Tools = append(d.Tools, tool)
+	return d
 }
 
 func (d *Detector) Deps(app i.IApp) (i.AppDeps, error) {
@@ -38,10 +39,12 @@ func (d *Detector) Deps(app i.IApp) (i.AppDeps, error) {
 	return i.AppDeps{}, errors.New("Bad")
 }
 
+// NewDetector returns empty detector
 func NewDetector() *Detector {
 	return &Detector{}
 }
 
+// DefaultDetector return detector with all dependency systems
 func DefaultDetector() *Detector {
 	detector := &Detector{}
 	detector.AddTool(dep.New())

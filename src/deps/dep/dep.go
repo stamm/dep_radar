@@ -39,7 +39,7 @@ func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.DepManager,
 	}
-	content, err := a.Provider().File(a.Package(), file)
+	content, err := a.Provider().File(a.Package(), a.Branch(), file)
 	if err != nil {
 		return res, err
 	}
@@ -59,6 +59,7 @@ func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
 		res.Deps[i.Pkg(imp.Name)] = i.Dep{
 			Package: i.Pkg(imp.Name),
 			Hash:    i.Hash(imp.Revision),
+			Version: imp.Version,
 		}
 	}
 	// fmt.Printf("deps = %+v\n", deps)

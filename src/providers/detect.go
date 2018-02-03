@@ -23,8 +23,9 @@ func NewDetector() *Detector {
 	return &Detector{}
 }
 
-func (d *Detector) AddProvider(prov i.IProvider) {
+func (d *Detector) AddProvider(prov i.IProvider) *Detector {
 	d.Providers = append(d.Providers, prov)
+	return d
 }
 
 func (d *Detector) AddDepTool(tool i.IDepTool) {

@@ -1,7 +1,6 @@
 package depstatus
 
 import (
-	"fmt"
 	"testing"
 
 	i "github.com/stamm/dep_radar/interfaces"
@@ -20,31 +19,27 @@ func TestIntegration_Github(t *testing.T) {
 
 	githubProv := github.New(github.NewHTTPWrapper("", 2))
 
-	provDetector := providers.NewDetector()
-	provDetector.AddProvider(githubProv)
+	provDetector := providers.NewDetector().
+		AddProvider(githubProv)
 
-	depDetector := deps.NewDetector()
-	depDetector.AddTool(dep.New())
-	depDetector.AddTool(glide.New())
+	depDetector := deps.NewDetector().
+		AddTool(dep.New()).
+		AddTool(glide.New())
 
-	appsPkgs := []i.Pkg{"github.com/Masterminds/glide"}
-	apps := make([]i.IApp, 0, len(appsPkgs))
-	for _, appPkg := range appsPkgs {
-		app, err := app.New(appPkg, provDetector, depDetector)
-		require.NoError(err)
-		apps = append(apps, app)
-	}
+	appPkg := i.Pkg("github.com/dep-radar/test_app")
+	app, err := app.New(appPkg, "master", provDetector, depDetector)
+	require.NoError(err)
 
-	libs := make(map[i.Pkg]i.Dep)
-	for _, app := range apps {
-		deps, err := app.Deps()
-		require.NoError(err)
-		for _, dep := range deps.Deps {
-			if _, ok := libs[dep.Package]; !ok {
-				libs[dep.Package] = dep
-			}
-		}
-	}
+	// libs := make(map[i.Pkg]i.Dep)
+	// for _, app := range apps {
+	// 	deps, err := app.Deps()
+	// 	require.NoError(err)
+	// 	for _, dep := range deps.Deps {
+	// 		if _, ok := libs[dep.Package]; !ok {
+	// 			libs[dep.Package] = dep
+	// 		}
+	// 	}
+	// }
 
 	// tags := make(i.LibMapWithTags, len(libs))
 	// for pkg := range libs {
@@ -53,12 +48,11 @@ func TestIntegration_Github(t *testing.T) {
 	// 	lig.Tags()
 	// }
 
-	deps, err := apps[0].Deps()
+	appDeps, err := app.Deps()
 	require.NoError(err)
-
-	fmt.Printf("len(deps) = %+v\n", len(deps.Deps))
-	require.Len(deps.Deps, 5)
-	// require.Equal(appDeps[0].Package, "test")
-	// require.Equal(appDeps[0].Hash, i.Hash("hash1"))
+	require.Len(appDeps.Deps, 1)
+	require.Contains(appDeps.Deps, i.Pkg("github.com/pkg/errors"))
+	require.Equal(i.Hash("645ef00459ed84a119197bfb8d8205042c6df63d"), appDeps.Deps[i.Pkg("github.com/pkg/errors")].Hash)
+	require.Equal("v0.8.0", appDeps.Deps[i.Pkg("github.com/pkg/errors")].Version)
 
 }

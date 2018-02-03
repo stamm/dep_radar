@@ -42,9 +42,9 @@ func TestAllFlow(t *testing.T) {
 
 	appDeps, err := depDetector.Deps(mApp)
 	require.Nil(err)
-	deps := appDeps.Deps
-	require.Len(deps, 1)
-	require.Equal(i.Pkg("test"), deps["test"].Package)
-	require.Equal(i.Hash("hash1"), deps["test"].Hash)
+	dependens := appDeps.Deps
+	require.Len(dependens, 1)
+	require.Equal(i.Pkg("test"), dependens["test"].Package)
+	require.Equal(i.Hash("hash1"), dependens["test"].Hash)
 
 }

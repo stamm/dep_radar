@@ -9,6 +9,7 @@ type IApp interface {
 	Package() Pkg
 	Provider() IProvider
 	Deps() (AppDeps, error)
+	Branch() string
 }
 
 type ILib interface {
@@ -50,7 +51,7 @@ type IWebClient interface {
 // Provider
 
 type IFileGetter interface {
-	File(pkg Pkg, filename string) ([]byte, error)
+	File(pkg Pkg, branch, filename string) ([]byte, error)
 }
 
 type ITagGetter interface {
@@ -76,7 +77,7 @@ type IDetector interface {
 
 type IDepDetector interface {
 	Deps(IApp) (AppDeps, error)
-	AddTool(IDepTool)
+	AddTool(IDepTool) IDepDetector
 }
 
 //go:generate mockery -name=IDepTool -case=underscore

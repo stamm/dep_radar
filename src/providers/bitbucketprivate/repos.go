@@ -19,11 +19,32 @@ type RepoValue struct {
 	Slug string `json:"slug"`
 }
 
-// GetRepos get repos
-func (a *BitBucketPrivate) getRepos(ctx context.Context, project string, start int) (reposResponse, error) {
+// GetAllRepos get repos
+func (p *Provider) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, error) {
+	var (
+		resultRepos []i.Pkg
+		start       int
+		isLastPage  bool
+	)
+
+	for !isLastPage {
+		repos, err := p.getRepos(ctx, project, start)
+		if err != nil {
+			return resultRepos, err
+		}
+		for _, repo := range repos.Values {
+			resultRepos = append(resultRepos, i.Pkg(p.goGetUrl+"/"+repo.Slug))
+		}
+		isLastPage = repos.IsLastPage
+		start = repos.NextPageStart
+	}
+	return resultRepos, nil
+}
+
+func (p *Provider) getRepos(ctx context.Context, project string, start int) (reposResponse, error) {
 	var repos reposResponse
-	url := fmt.Sprintf("https://%s/rest/api/1.0/projects/%s/repos?start=%d", a.gitDomain, project, start)
-	reposResponse, err := a.httpClient.Get(url)
+	url := p.getReposURL(p.gitDomain, project, start)
+	reposResponse, err := p.httpClient.Get(url)
 	if err != nil {
 		return repos, err
 	}
@@ -32,23 +53,6 @@ func (a *BitBucketPrivate) getRepos(ctx context.Context, project string, start i
 	return repos, err
 }
 
-func (a *BitBucketPrivate) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, error) {
-	var (
-		resultRepos []i.Pkg
-		start       int
-		isLastPage  bool
-	)
-
-	for !isLastPage {
-		repos, err := a.getRepos(ctx, project, start)
-		if err != nil {
-			return resultRepos, err
-		}
-		for _, repo := range repos.Values {
-			resultRepos = append(resultRepos, i.Pkg(a.goGetUrl+"/"+repo.Slug))
-		}
-		isLastPage = repos.IsLastPage
-		start = repos.NextPageStart
-	}
-	return resultRepos, nil
+func (p *Provider) getReposURL(domain, project string, start int) string {
+	return fmt.Sprintf("https://%s/rest/api/1.0/projects/%s/repos?start=%d", domain, project, start)
 }

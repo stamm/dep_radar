@@ -63,9 +63,10 @@ func TestGlide_Name(t *testing.T) {
 
 func appMock(content []byte, err error) *mocks.IApp {
 	prov := &mocks.IProvider{}
-	prov.On("File", i.Pkg("app_pkg"), "glide.lock").Return(content, err)
+	prov.On("File", i.Pkg("app_pkg"), "master", "glide.lock").Return(content, err)
 	app := &mocks.IApp{}
 	app.On("Package").Return(i.Pkg("app_pkg"))
+	app.On("Branch").Return("master")
 	app.On("Provider").Return(prov)
 	return app
 }

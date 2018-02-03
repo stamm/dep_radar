@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 
 	i "github.com/stamm/dep_radar/interfaces"
 )
 
 var (
-	_ i.ITagGetter = &BitBucketPrivate{}
-	_ i.IProvider  = &BitBucketPrivate{}
+	_ i.ITagGetter = &Provider{}
+	_ i.IProvider  = &Provider{}
 )
 
 // TagsResponse response from bitbucket for tags
@@ -46,12 +47,13 @@ type FileOpts struct {
 	BranchName string
 }
 
-type BitBucketPrivate struct {
+type Provider struct {
 	project    string
 	httpClient i.IWebClient
 	gitDomain  string
 	goGetUrl   string
 	apiUrl     string
+	muMap      sync.RWMutex
 	mapProject map[i.Pkg]string
 }
 
@@ -61,8 +63,8 @@ type Options struct {
 	Password string
 }
 
-func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *BitBucketPrivate {
-	return &BitBucketPrivate{
+func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *Provider {
+	return &Provider{
 		httpClient: httpClient,
 		goGetUrl:   goGetUrl,
 		gitDomain:  gitDomain,
@@ -71,40 +73,45 @@ func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *BitBucket
 	}
 }
 
-func (a *BitBucketPrivate) File(pkg i.Pkg, name string) ([]byte, error) {
-	project, err := a.getProject(pkg)
+func (p *Provider) File(pkg i.Pkg, branch, name string) ([]byte, error) {
+	project, err := p.getProject(pkg)
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s", a.apiUrl, project, a.repoName(pkg), name)
-	return a.httpClient.Get(url)
+	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s?at=refs%%2Fheads%%2F%s", p.apiUrl, project, p.repoName(pkg), name, branch)
+	return p.httpClient.Get(url)
 }
 
-func (a *BitBucketPrivate) GoGetUrl() string {
-	return a.goGetUrl
+func (p *Provider) GoGetUrl() string {
+	return p.goGetUrl
 }
 
 // todo cache result in map
-func (a *BitBucketPrivate) getProject(pkg i.Pkg) (string, error) {
-	if project, ok := a.mapProject[pkg]; ok {
+func (p *Provider) getProject(pkg i.Pkg) (string, error) {
+	p.muMap.RLock()
+	if project, ok := p.mapProject[pkg]; ok {
+		p.muMap.RUnlock()
 		return project, nil
 	}
-	// if a.project != "" {
+	p.muMap.RUnlock()
+	// if p.project != "" {
 	// 	return nil
 	// }
-	project, err := GetProject(a.httpClient, pkg, a.gitDomain)
+	project, err := GetProject(p.httpClient, pkg, p.gitDomain)
 	if err != nil {
 		return "", err
 	}
-	a.mapProject[pkg] = project
+	p.muMap.Lock()
+	p.mapProject[pkg] = project
+	p.muMap.Unlock()
 	// fmt.Printf("project = %+v\n", project)
-	// a.project = project
+	// p.project = project
 	return project, nil
 }
 
 // Tags get tags from bitbucket
-func (a *BitBucketPrivate) Tags(pkg i.Pkg) ([]i.Tag, error) {
-	project, err := a.getProject(pkg)
+func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
+	project, err := p.getProject(pkg)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +121,7 @@ func (a *BitBucketPrivate) Tags(pkg i.Pkg) ([]i.Tag, error) {
 		isLastPage bool
 	)
 	for !isLastPage {
-		tags, err := a.tags(pkg, project, start)
+		tags, err := p.tags(pkg, project, start)
 		if err != nil {
 			return tagsResult, fmt.Errorf("Error on getting tags: %s", err)
 		}
@@ -128,10 +135,10 @@ func (a *BitBucketPrivate) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	return tagsResult, nil
 }
 
-func (a *BitBucketPrivate) tags(pkg i.Pkg, project string, start int) (TagsResponse, error) {
+func (p *Provider) tags(pkg i.Pkg, project string, start int) (TagsResponse, error) {
 	var tags TagsResponse
-	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", a.apiUrl, project, a.repoName(pkg), start)
-	reposResponse, err := a.httpClient.Get(url)
+	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", p.apiUrl, project, p.repoName(pkg), start)
+	reposResponse, err := p.httpClient.Get(url)
 	if err != nil {
 		return tags, err
 	}
@@ -140,7 +147,7 @@ func (a *BitBucketPrivate) tags(pkg i.Pkg, project string, start int) (TagsRespo
 	return tags, err
 }
 
-func (a *BitBucketPrivate) repoName(pkg i.Pkg) string {
+func (p *Provider) repoName(pkg i.Pkg) string {
 	strpkg := string(pkg)
 	pos := strings.Index(strpkg, "/")
 	if pos == -1 {

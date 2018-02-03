@@ -6,13 +6,15 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"time"
 
-	"github.com/stamm/dep_radar/examples/bb/custom"
+	"github.com/stamm/dep_radar/examples/github/custom"
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/html"
+	"github.com/stamm/dep_radar/src/providers/github"
 )
 
 func main() {
@@ -24,14 +26,15 @@ func main() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	// get all applications packages
-	prov, provDetector := custom.Detector()
+	provDetector := custom.Detector()
 	depDetector := deps.DefaultDetector()
 
-	pkgs, err := prov.GetAllRepos(context.Background(), "GO")
+	// pkgs := []i.Pkg{"github.com/dep-radar/test_app"}
+
+	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	pkgs, err := githubProv.GetAllOrgRepos(context.Background(), "dep-radar")
 	if err != nil {
-		fmt.Fprintf(w, "Error: %s", err)
-		return
+		log.Fatal(err)
 	}
 
 	// Create a little wrapper with custom logic for detect
@@ -44,7 +47,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		apps = append(apps, apiApp)
 	}
 
-	htmlResult, err := html.LibsHtml(apps, provDetector)
+	mapRec := html.MapRecomended{
+		"github.com/pkg/errors": html.Option{
+			Recomended: ">=0.8.0",
+			Mandatory:  true,
+		},
+		"github.com/pkg/sftp": html.Option{
+			Recomended: ">=1.3.0",
+		},
+		"github.com/kr/fs": html.Option{
+			Exclude: true,
+		},
+	}
+	htmlResult, err := html.AppsHtml(apps, provDetector, mapRec)
+	// htmlResult, err := html.LibsHtml(apps, provDetector)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -16,8 +16,17 @@ func TestGithubRepo_GetUrl(t *testing.T) {
 	require := require.New(t)
 
 	prov := New(&mocks.IWebClient{})
-	url := prov.makeURL(i.Pkg("github.com/Masterminds/glide"), "glide.lock")
-	require.Equal("Masterminds/glide/master/glide.lock", url)
+	url := prov.makeURL(i.Pkg("github.com/Masterminds/glide"), "master", "glide.lock")
+	require.Equal("https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock", url)
+}
+
+func TestGithubRepo_GetUrlWithBranch(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	prov := New(&mocks.IWebClient{})
+	url := prov.makeURL(i.Pkg("github.com/Masterminds/glide"), "dev", "glide.lock")
+	require.Equal("https://raw.githubusercontent.com/Masterminds/glide/dev/glide.lock", url)
 }
 
 func TestGithubRepo_GetUrlSubpackage(t *testing.T) {
@@ -25,8 +34,8 @@ func TestGithubRepo_GetUrlSubpackage(t *testing.T) {
 	require := require.New(t)
 
 	app := New(&mocks.IWebClient{})
-	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require"), "doc.go")
-	require.Equal("stretchr/testify/master/require/doc.go", url)
+	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require"), "master", "doc.go")
+	require.Equal("https://raw.githubusercontent.com/stretchr/testify/master/require/doc.go", url)
 }
 
 func TestGithubRepo_GetUrlWithSlash(t *testing.T) {
@@ -34,8 +43,8 @@ func TestGithubRepo_GetUrlWithSlash(t *testing.T) {
 	require := require.New(t)
 
 	app := New(&mocks.IWebClient{})
-	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require/"), "doc.go")
-	require.Equal("stretchr/testify/master/require/doc.go", url)
+	url := app.makeURL(i.Pkg("github.com/stretchr/testify/require/"), "master", "doc.go")
+	require.Equal("https://raw.githubusercontent.com/stretchr/testify/master/require/doc.go", url)
 }
 
 func TestGithubRepo_WithDep(t *testing.T) {
@@ -45,12 +54,12 @@ func TestGithubRepo_WithDep(t *testing.T) {
 	pkg := i.Pkg("github.com/Masterminds/glide")
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "Masterminds/glide/master/glide.lock").Return([]byte(`imports:
+	mHttpClient.On("Get", "https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock").Return([]byte(`imports:
 - name: pkg1
   version: hash1`), nil)
 
 	prov := New(mHttpClient)
-	content, err := prov.File(pkg, "glide.lock")
+	content, err := prov.File(pkg, "master", "glide.lock")
 	require.NoError(err)
 	require.True(len(content) > 0)
 
@@ -60,6 +69,7 @@ func TestGithubRepo_WithDep(t *testing.T) {
 	app := &mocks.IApp{}
 	app.On("Provider").Return(prov)
 	app.On("Package").Return(pkg)
+	app.On("Branch").Return("master")
 
 	appDeps, err := detector.Deps(app)
 	require.NoError(err)
@@ -83,7 +93,7 @@ func TestGithubTags_Ok(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`[
+	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`[
   {
     "name": "v0.1.0",
     "commit": {
@@ -112,7 +122,7 @@ func TestGithubTags_Error(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return(nil, errors.New("error"))
+	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return(nil, errors.New("error"))
 
 	pkg := i.Pkg("github.com/golang/dep")
 	tagsGetter := New(mHttpClient)
@@ -127,7 +137,7 @@ func TestGithubTags_BadFile(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags").Return([]byte(`{`), nil)
+	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`{`), nil)
 
 	pkg := i.Pkg("github.com/golang/dep")
 	tagsGetter := New(mHttpClient)

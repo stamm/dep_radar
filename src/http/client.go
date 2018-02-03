@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	stdhttp "net/http"
 	"strings"
 	"time"
@@ -17,12 +18,13 @@ var (
 
 func init() {
 	tr := &stdhttp.Transport{
-		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 100,
-		IdleConnTimeout:     30 * time.Second,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   100,
+		IdleConnTimeout:       30 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
 	}
 	defaultHttpClient = &stdhttp.Client{
-		Timeout:   1 * time.Second,
+		Timeout:   30 * time.Second,
 		Transport: tr,
 	}
 }
@@ -48,7 +50,7 @@ func NewClient(op Options, limit int) *Client {
 	}
 }
 
-func (r *Client) Get2(url string) ([]byte, error) {
+func (c *Client) Get2(url string) ([]byte, error) {
 	client := &stdhttp.Client{}
 	req, _ := stdhttp.NewRequest("GET", url, nil)
 
@@ -89,7 +91,9 @@ func (c *Client) Get(uri string) ([]byte, error) {
 	}
 
 	client := c.getHTTPClient()
+	start := time.Now()
 	resp, err := client.Do(req)
+	log.Printf("time %s for %s", time.Since(start), url)
 	if err != nil {
 		return nil, err
 	}

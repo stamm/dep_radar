@@ -8,6 +8,7 @@ var _ i.IApp = &App{}
 
 type App struct {
 	pkg         i.Pkg
+	branch      string
 	provider    i.IProvider
 	deps        i.AppDeps
 	depDetector i.IDepDetector
@@ -25,7 +26,11 @@ func (a *App) Deps() (i.AppDeps, error) {
 	return a.depDetector.Deps(a)
 }
 
-func New(pkg i.Pkg, detector i.IDetector, depDetector i.IDepDetector) (*App, error) {
+func (a *App) Branch() string {
+	return a.branch
+}
+
+func New(pkg i.Pkg, branch string, detector i.IDetector, depDetector i.IDepDetector) (*App, error) {
 	provider, err := detector.Detect(pkg)
 	if err != nil {
 		return nil, err
@@ -33,6 +38,7 @@ func New(pkg i.Pkg, detector i.IDetector, depDetector i.IDepDetector) (*App, err
 
 	return &App{
 		pkg:         pkg,
+		branch:      branch,
 		provider:    provider,
 		depDetector: depDetector,
 	}, nil

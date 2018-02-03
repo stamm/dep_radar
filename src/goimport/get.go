@@ -27,7 +27,6 @@ func GetImports(client i.IWebClient, url string) ([]metaImport, error) {
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Printf("string(resp) = %+v\n", string(resp))
 	buf := bytes.NewBuffer(resp)
 	imports, err := parseMetaGoImports(buf)
 	if err != nil {

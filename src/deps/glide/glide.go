@@ -22,7 +22,7 @@ func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.GlideManager,
 	}
-	content, err := a.Provider().File(a.Package(), path.LockFile)
+	content, err := a.Provider().File(a.Package(), a.Branch(), path.LockFile)
 	if err != nil {
 		return res, err
 	}

@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 TEST_ARGS?=
 MIN_GO_VERSION:=1.9
 DEP_VERSION=v0.4.1

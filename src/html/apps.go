@@ -91,9 +91,10 @@ func AppsHTML(apps []i.IApp, detector *providers.Detector, rec MapRecomended) (s
 	result += "</thead></tr><tbody>"
 	for _, pkg := range pkgsKey {
 		var hints []string
-		if recLib, ok := rec[i.Pkg(pkg)]; ok {
+		recLib, ok := rec[i.Pkg(pkg)]
+		if ok {
 			if recLib.Recomended != "" {
-				hints = append(hints, `<font style="background-color: `+colorMandatoryOk+`">`+recLib.Recomended+"</font>")
+				hints = append(hints, recLib.Recomended)
 			}
 			if recLib.Mandatory {
 				hints = append(hints, "mandatory")
@@ -138,7 +139,7 @@ func AppsHTML(apps []i.IApp, detector *providers.Detector, rec MapRecomended) (s
 					if goodVersion {
 						extra = fmt.Sprintf(` class="%s"`, classMandatoryOk)
 					} else {
-						extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classMandatoryBad, "Need to change version")
+						extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classMandatoryBad, "Need to change version to "+recLib.Recomended)
 					}
 				}
 			}

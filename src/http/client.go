@@ -13,28 +13,29 @@ import (
 
 var (
 	_                 i.IWebClient = &Client{}
-	defaultHttpClient *stdhttp.Client
+	defaultHTTPClient *stdhttp.Client
 )
 
 func init() {
-	tr := &stdhttp.Transport{
-		MaxIdleConns:          100,
-		MaxIdleConnsPerHost:   100,
-		IdleConnTimeout:       30 * time.Second,
-		ResponseHeaderTimeout: 30 * time.Second,
-	}
-	defaultHttpClient = &stdhttp.Client{
-		Timeout:   30 * time.Second,
-		Transport: tr,
+	defaultHTTPClient = &stdhttp.Client{
+		Timeout: 30 * time.Second,
+		Transport: &stdhttp.Transport{
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   100,
+			IdleConnTimeout:       30 * time.Second,
+			ResponseHeaderTimeout: 30 * time.Second,
+		},
 	}
 }
 
+// Options for http client
 type Options struct {
 	URL      string
 	User     string
 	Password string
 }
 
+// Client gets html pages
 type Client struct {
 	Options    Options
 	Limit      int
@@ -42,6 +43,7 @@ type Client struct {
 	limitCh    chan struct{}
 }
 
+// NewClient returns our http client
 func NewClient(op Options, limit int) *Client {
 	return &Client{
 		Options: op,
@@ -50,26 +52,9 @@ func NewClient(op Options, limit int) *Client {
 	}
 }
 
-func (c *Client) Get2(url string) ([]byte, error) {
-	client := &stdhttp.Client{}
-	req, _ := stdhttp.NewRequest("GET", url, nil)
-
-	resp, err := client.Do(req)
-	if nil != err {
-		return nil, err
-	}
-	if resp.StatusCode > 300 {
-		return nil, fmt.Errorf("Response code is %d", resp.StatusCode)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
-}
-
+// Get the html
 func (c *Client) Get(uri string) ([]byte, error) {
+	log.Printf("Start getting url %s\n", uri)
 	c.limitCh <- struct{}{}
 	defer func() {
 		<-c.limitCh
@@ -90,9 +75,8 @@ func (c *Client) Get(uri string) ([]byte, error) {
 		req.SetBasicAuth(c.Options.User, c.Options.Password)
 	}
 
-	client := c.getHTTPClient()
 	start := time.Now()
-	resp, err := client.Do(req)
+	resp, err := c.getHTTPClient().Do(req)
 	log.Printf("time %s for %s", time.Since(start), url)
 	if err != nil {
 		return nil, err
@@ -114,6 +98,6 @@ func (c Client) getHTTPClient() *stdhttp.Client {
 	if c.httpClient != nil {
 		return c.httpClient
 	}
-	c.httpClient = defaultHttpClient
+	c.httpClient = defaultHTTPClient
 	return c.httpClient
 }

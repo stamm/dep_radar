@@ -9,11 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/stamm/dep_radar/examples/github/custom"
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/html"
+	"github.com/stamm/dep_radar/src/providers"
 	"github.com/stamm/dep_radar/src/providers/github"
 )
 
@@ -26,12 +26,12 @@ func main() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	provDetector := custom.Detector()
+	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	provDetector := providers.NewDetector().AddProvider(githubProv)
 	depDetector := deps.DefaultDetector()
 
 	// pkgs := []i.Pkg{"github.com/dep-radar/test_app"}
 
-	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
 	pkgs, err := githubProv.GetAllOrgRepos(context.Background(), "dep-radar")
 	if err != nil {
 		log.Fatal(err)
@@ -58,8 +58,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"github.com/kr/fs": html.Option{
 			Exclude: true,
 		},
+		"github.com/pkg/bson": html.Option{
+			Mandatory: true,
+		},
+		"github.com/pkg/singlefile": html.Option{
+			Exclude: true,
+		},
+		"github.com/pkg/profile": html.Option{
+			NeedVersion: true,
+		},
 	}
-	htmlResult, err := html.AppsHtml(apps, provDetector, mapRec)
+	htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
 	// htmlResult, err := html.LibsHtml(apps, provDetector)
 	if err != nil {
 		log.Fatal(err)

@@ -43,7 +43,7 @@ type HTTPWrapper struct {
 func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 	return &HTTPWrapper{
 		token:  token,
-		client: http.NewClient(http.Options{}, 10),
+		client: http.NewClient(http.Options{}, limit),
 	}
 }
 

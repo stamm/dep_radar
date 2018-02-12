@@ -1,7 +1,9 @@
 package html
 
 import (
-	"fmt"
+	"bytes"
+	"html/template"
+	"io/ioutil"
 	"sort"
 	"strings"
 	"time"
@@ -17,14 +19,28 @@ const (
 	classMandatoryBad = "bg-danger"
 	classExclude      = "table-warning"
 	classNeedVersion  = "table-warning"
-	// color= ""
-	// color= ""
 )
 
 type templateStruct struct {
-	SortedPkgsKeys []string
-	AppsMap        i.AppListWithDeps
-	LibsMap        i.LibMapWithTags
+	LibView []libView
+	AppView []appView
+}
+
+type libView struct {
+	Name  string
+	Hints string
+}
+
+type appView struct {
+	Name string
+	Libs map[string]appLibView
+}
+
+type appLibView struct {
+	Ok      bool
+	Class   string
+	Title   string
+	Version string
 }
 
 // MapRecomended map with option for libraries
@@ -43,9 +59,9 @@ type Option struct {
 // AppsHTML return html with table. In the head apps, on the left side - libs
 func AppsHTML(apps []i.IApp, detector *providers.Detector, rec MapRecomended) (string, error) {
 	appsMap, libsMap := fill.GetTags(apps, detector)
-	// fmt.Printf("libsMap = %+v\n", libsMap)
 	appsMap = fill.AddVersionLibToApp(appsMap, libsMap)
 
+	// Sort libraries
 	pkgsKey := make(sort.StringSlice, 0, len(libsMap))
 	for pkgKey := range libsMap {
 		pkgsKey = append(pkgsKey, string(pkgKey))
@@ -55,43 +71,21 @@ func AppsHTML(apps []i.IApp, detector *providers.Detector, rec MapRecomended) (s
 			pkgsKey = append(pkgsKey, string(pkg))
 		}
 	}
-	sort.Strings(pkgsKey) //sort by key
+	sort.Strings(pkgsKey)
+
+	// Sort apps
 	appsKey := make(sort.StringSlice, 0, len(apps))
 	for _, appPkg := range apps {
 		appsKey = append(appsKey, string(appPkg.Package()))
 	}
 	sort.Strings(appsKey)
-	// fmt.Printf("pkgsKey = %+v\n", pkgsKey)
 
-	// tmpl, err := template.ParseFiles("src/html/apps.html")
-	// if err != nil {
-	// 	return "", err
-	// }
-	// data := templateStruct{
-	// 	SortedPkgsKeys: pkgsKey,
-	// 	AppsMap:        appsMap,
-	// 	LibsMap:        libsMap,
-	// }
-	// var buf bytes.Buffer
-	// err = tmpl.Execute(&buf, data)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// html, err := ioutil.ReadAll(&buf)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return string(html), nil
-
-	result := `<table class="table table-striped table-hover table-sm">`
-	result += `<thead class="thead-dark"><tr><th>apps</th>`
-	for _, pkg := range appsKey {
-		result += fmt.Sprintf("<th>%s</th>", pkg)
-	}
-	result += "</thead></tr><tbody>"
-	for _, pkg := range pkgsKey {
+	// Prepair data for render
+	pkgsViewData := make([]libView, 0, len(pkgsKey))
+	appViewData := make([]appView, 0, len(appsKey))
+	for _, pkgName := range pkgsKey {
 		var hints []string
-		recLib, ok := rec[i.Pkg(pkg)]
+		recLib, ok := rec[i.Pkg(pkgName)]
 		if ok {
 			if recLib.Recomended != "" {
 				hints = append(hints, recLib.Recomended)
@@ -106,61 +100,92 @@ func AppsHTML(apps []i.IApp, detector *providers.Detector, rec MapRecomended) (s
 				hints = append(hints, "only version")
 			}
 		}
-		result += fmt.Sprintf("<tr><td><b>%s</b> <small>%s</small></td>", pkg, strings.Join(hints, ", "))
-		for _, appKey := range appsKey {
+		pkgsViewData = append(pkgsViewData, libView{
+			Name:  pkgName,
+			Hints: strings.Join(hints, ", "),
+		})
+	}
+
+	for _, appKey := range appsKey {
+		appData := appView{
+			Name: appKey,
+			Libs: make(map[string]appLibView, len(pkgsViewData)),
+		}
+		for _, pkgData := range pkgsViewData {
 			libs := appsMap[i.Pkg(appKey)]
-			libPkg := i.Pkg(pkg)
+			libPkg := i.Pkg(pkgData.Name)
 			opt, okOpt := rec[libPkg]
 
 			dep, ok := libs[libPkg]
 			if !ok {
-				extra := ""
+				// If library not in app
+				appLibData := appLibView{
+					Version: "—",
+					Ok:      true,
+				}
 				if okOpt {
 					if opt.Mandatory {
-						extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classMandatoryBad, "Mandatory to use")
+						appLibData.Class = classMandatoryBad
+						appLibData.Ok = false
+						appLibData.Title = "Mandatory to use"
 					}
 					if opt.Exclude {
-						extra = fmt.Sprintf(` class="%s"`, classMandatoryOk)
+						appLibData.Class = classMandatoryOk
 					}
 				}
-				result += fmt.Sprintf("<td%s>—</td>", extra)
+				appData.Libs[pkgData.Name] = appLibData
 				continue
 			}
-			version := dep.Version
-			if version == "" {
-				version = string(libs[libPkg].Hash)[0:8]
+
+			appLibData := appLibView{
+				Version: dep.Version,
+				Ok:      true,
 			}
-			extra := ""
+			if appLibData.Version == "" {
+				appLibData.Version = string(libs[libPkg].Hash)[0:8]
+			}
 			if okOpt {
 				if opt.Exclude {
-					extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classExclude, "Need to exclude this library")
+					appLibData.Class = classExclude
+					appLibData.Ok = false
+					appLibData.Title = "Need to exclude this library"
 				} else {
 					goodVersion, _ := versionpkg.Compare(opt.Recomended, dep.Version)
 					if goodVersion {
-						extra = fmt.Sprintf(` class="%s"`, classMandatoryOk)
+						appLibData.Class = classMandatoryOk
 					} else {
-						extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classMandatoryBad, "Need to change version to "+recLib.Recomended)
+						appLibData.Class = classMandatoryBad
+						appLibData.Ok = false
+						appLibData.Title = "Need to change version to " + opt.Recomended
 					}
 				}
+				if opt.NeedVersion && dep.Version == "" {
+					appLibData.Class = classNeedVersion
+					appLibData.Ok = false
+					appLibData.Title = "Use version instead of revision"
+				}
 			}
-			if okOpt && opt.NeedVersion && dep.Version == "" {
-				extra = fmt.Sprintf(` class="%s" data-toggle="tooltip" title="%s"`, classNeedVersion, "Use version instead of revision")
-			}
-			result += fmt.Sprintf("<td%s>%s</td>", extra, version)
+			appData.Libs[pkgData.Name] = appLibData
 		}
-		result += "</tr>"
+		appViewData = append(appViewData, appData)
 	}
-	result += "</tbody></table>"
-	return `<head>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"></head><body>` + result + `
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-<script>
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-})
-</script>
 
-</body>`, nil
+	tmpl, err := template.ParseFiles("src/html/apps.html")
+	if err != nil {
+		return "", err
+	}
+	data := templateStruct{
+		LibView: pkgsViewData,
+		AppView: appViewData,
+	}
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return "", err
+	}
+	html, err := ioutil.ReadAll(&buf)
+	if err != nil {
+		return "", err
+	}
+	return string(html), nil
 }

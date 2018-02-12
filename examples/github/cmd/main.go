@@ -71,8 +71,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		close(apps)
 	}()
 
-	htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
-	// htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
+	// htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
+	htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
 	if err != nil {
 		log.Fatal(err)
 	}

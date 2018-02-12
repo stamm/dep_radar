@@ -3,6 +3,12 @@
 [![Code Climate](https://img.shields.io/codeclimate/coverage/github/stamm/dep_radar.svg?style=flat-square)](https://codeclimate.com/github/stamm/dep_radar/coverage)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stamm/dep_radar)](https://goreportcard.com/report/github.com/stamm/dep_radar)
 
+# Screenshots
+![Application screenshot](https://github.com/stamm/dep_radar/raw/master/docs/apps.png)
+
+![Libraries screenshot](https://github.com/stamm/dep_radar/raw/master/docs/libs.png)
+
+
 ## Dep radar
 `dep radar` is a prototype to control Go dependencies in microservice world.
 `dep radar` is not stable yet. It requires Go 1.9 or newer to compile.

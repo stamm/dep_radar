@@ -119,7 +119,6 @@ func prepare(apps <-chan i.IApp, detector *providers.Detector, rec MapRecomended
 				appLibData := appLibView{
 					Version: "—",
 					Ok:      true,
-					Class:   classMandatoryOk,
 				}
 				if okOpt {
 					if opt.Mandatory {

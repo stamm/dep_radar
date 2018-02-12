@@ -28,26 +28,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	prov, provDetector := custom.Detector()
 	depDetector := deps.DefaultDetector()
 
-	pkgs, err := prov.GetAllRepos(context.Background(), "GO")
-	if err != nil {
-		fmt.Fprintf(w, "Error: %s", err)
-		return
-	}
-
 	// Create a little wrapper with custom logic for detect
-	apps := make([]i.IApp, 0, len(pkgs))
-	for _, pkg := range pkgs {
-		apiApp, err := app.New(pkg, "master", provDetector, depDetector)
+	apps := make(chan i.IApp, 100)
+	go func() {
+		defer close(apps)
+		pkgs, err := prov.GetAllRepos(context.Background(), "GO")
 		if err != nil {
-			log.Printf("cant create app %s, got err: %s\n", pkg, err)
+			fmt.Fprintf(w, "Error: %s", err)
+			return
 		}
-		apps = append(apps, apiApp)
-	}
+		for _, pkg := range pkgs {
+			apiApp, err := app.New(pkg, "master", provDetector, depDetector)
+			if err != nil {
+				log.Printf("cant create app %s, got err: %s\n", pkg, err)
+			}
+			apps <- apiApp
+		}
+	}()
 
-	htmlResult, err := html.LibsHtml(apps, provDetector)
+	htmlResult, err := html.LibsHTML(apps, provDetector, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprint(w, htmlResult)
+	w.Write(htmlResult)
 	fmt.Fprintf(w, "took %s", time.Since(start))
 }

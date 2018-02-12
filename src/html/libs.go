@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 
 	i "github.com/stamm/dep_radar/interfaces"
+	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/providers"
 )
 
 // LibsHTML return html with table. In the head libs, on the left side - apps
-func LibsHTML(apps <-chan i.IApp, detector *providers.Detector, rec MapRecomended) ([]byte, error) {
+func LibsHTML(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecomended) ([]byte, error) {
 	var buf bytes.Buffer
 	tmpl, err := template.ParseFiles("src/html/libs.html")
 	if err != nil {

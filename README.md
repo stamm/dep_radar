@@ -19,7 +19,32 @@ Your code must implement:
 * Init provider detector. It can be a default with support only github, but you can add you own provider.
 * A http handler with calling method for generate html table with all apps and dependencies.
 
-You can find [examples](examples/)
+Simple example for create a table with dependencies for whole github organization [dep-radar](https://github.com/dep-radar):
+
+```go
+package main
+
+import (
+	"os"
+
+	"github.com/stamm/dep_radar/src/helpers"
+	"github.com/stamm/dep_radar/src/src"
+)
+
+func main() {
+	recom := src.MapRecomended{
+		"github.com/pkg/errors": src.Option{
+			Recomended: ">=0.8.0",
+			Mandatory:  true,
+			Exclude: false,
+			NeedVersion: true,
+		},
+	}
+	helpers.GithubOrg(os.Getenv("GITHUB_TOKEN"), "dep-radar", ":8081", recom)
+}
+
+```
+You can find more [examples](examples/)
 
 
 

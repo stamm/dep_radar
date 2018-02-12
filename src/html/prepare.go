@@ -3,9 +3,9 @@ package html
 import (
 	"sort"
 	"strings"
-	"time"
 
 	i "github.com/stamm/dep_radar/interfaces"
+	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/fill"
 	"github.com/stamm/dep_radar/src/providers"
 	versionpkg "github.com/stamm/dep_radar/src/version"
@@ -40,21 +40,8 @@ type appLibView struct {
 	Version string
 }
 
-// MapRecomended map with option for libraries
-type MapRecomended map[i.Pkg]Option
-
-// Option for library
-type Option struct {
-	Recomended  string
-	Mandatory   bool
-	Exclude     bool
-	NeedVersion bool
-	UpdatedAt   time.Time
-	UpdateAfter time.Time
-}
-
 // AppsHTML return html with table. In the head apps, on the left side - libs
-func prepare(apps <-chan i.IApp, detector *providers.Detector, rec MapRecomended) templateStruct {
+func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecomended) templateStruct {
 	appsMap, libsMap := fill.GetTags(apps, detector)
 	appsMap = fill.AddVersionLibToApp(appsMap, libsMap)
 

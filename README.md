@@ -28,7 +28,7 @@ import (
 	"os"
 
 	"github.com/stamm/dep_radar/src/helpers"
-	"github.com/stamm/dep_radar/src/src"
+	"github.com/stamm/dep_radar/src"
 )
 
 func main() {

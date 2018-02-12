@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"time"
 
@@ -52,9 +51,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	provDetector := providers.NewDetector().AddProvider(githubProv)
 	depDetector := deps.DefaultDetector()
 
-	// pkgs := []i.Pkg{"github.com/dep-radar/test_app"}
-
-	// Create a little wrapper with custom logic for detect
 	apps := make(chan i.IApp, 10)
 	go func() {
 		pkgs, err := githubProv.GetAllOrgRepos(context.Background(), "dep-radar")
@@ -71,11 +67,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		close(apps)
 	}()
 
-	// htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
-	htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
+	htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
+	// htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(w, "Error: %s", err)
+	} else {
+		w.Write(htmlResult)
 	}
-	w.Write(htmlResult)
 	fmt.Fprintf(w, "took %s", time.Since(start))
 }

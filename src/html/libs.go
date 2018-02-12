@@ -1,47 +1,29 @@
 package html
 
 import (
-	"fmt"
-	"sort"
+	"bytes"
+	"html/template"
+	"io/ioutil"
 
 	i "github.com/stamm/dep_radar/interfaces"
-	"github.com/stamm/dep_radar/src/fill"
 	"github.com/stamm/dep_radar/src/providers"
 )
 
-func LibsHtml(apps []i.IApp, detector *providers.Detector) (string, error) {
-	appsMap, libsMap := fill.GetTags(apps, detector)
-	appsMap = fill.AddVersionLibToApp(appsMap, libsMap)
-
-	pkgsKey := make([]string, 0, len(libsMap))
-	for pkgKey := range libsMap {
-		pkgsKey = append(pkgsKey, string(pkgKey))
+// LibsHTML return html with table. In the head libs, on the left side - apps
+func LibsHTML(apps <-chan i.IApp, detector *providers.Detector, rec MapRecomended) ([]byte, error) {
+	var buf bytes.Buffer
+	tmpl, err := template.ParseFiles("src/html/libs.html")
+	if err != nil {
+		return buf.Bytes(), err
 	}
-	sort.Strings(pkgsKey) //sort by key
-
-	// TODO: need to fix
-	result := "<table>"
-	result += "<tr><td>apps</td>"
-	for pkg := range libsMap {
-		result += fmt.Sprintf("<td>%s</td>", pkg)
+	data := prepare(apps, detector, rec)
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return buf.Bytes(), err
 	}
-	result += "</tr>"
-	for _, pkg := range pkgsKey {
-		result += fmt.Sprintf("<tr><td>%s</td>", pkg)
-		for _, libs := range appsMap {
-			dep, ok := libs[i.Pkg(pkg)]
-			if !ok {
-				result += "<td>-</td>"
-				continue
-			}
-			version := dep.Version
-			if version == "" {
-				version = string(libs[i.Pkg(pkg)].Hash)
-			}
-			result += fmt.Sprintf("<td>%s</td>", version)
-		}
-		result += "</tr>"
+	html, err := ioutil.ReadAll(&buf)
+	if err != nil {
+		return buf.Bytes(), err
 	}
-	result += "</table>"
-	return "<body>" + result + "</body>", nil
+	return html, nil
 }

@@ -2,7 +2,6 @@ package fill
 
 import (
 	"log"
-	_ "net/http/pprof"
 	"sync"
 
 	i "github.com/stamm/dep_radar/interfaces"
@@ -15,22 +14,23 @@ type Lib struct {
 	AppPkg i.Pkg
 }
 
-func GetTags(apps []i.IApp, detector *providers.Detector) (i.AppListWithDeps, i.LibMapWithTags) {
+func GetTags(apps <-chan i.IApp, detector *providers.Detector) (i.AppListWithDeps, i.LibMapWithTags) {
 	var (
-		muRes sync.Mutex
+		muRes sync.RWMutex
 		wg    sync.WaitGroup
 	)
 	libsMap := make(map[i.Pkg]struct{})
 	res := make(map[i.Pkg][]i.Tag)
-	appList := make(i.AppListWithDeps, len(apps))
+	appList := make(i.AppListWithDeps, 100)
 	for lib := range depsChan(apps) {
-		// fmt.Printf("lib = %+v\n", lib)
 		if _, ok := appList[lib.AppPkg]; !ok {
 			appList[lib.AppPkg] = make(map[i.Pkg]i.Dep)
 		}
 		appList[lib.AppPkg][lib.Pkg] = lib.Dep
-
-		if _, ok := libsMap[lib.Pkg]; !ok {
+		muRes.RLock()
+		_, ok := libsMap[lib.Pkg]
+		muRes.RUnlock()
+		if !ok {
 			wg.Add(1)
 			libsMap[lib.Pkg] = struct{}{}
 			// go get list of tags
@@ -53,11 +53,11 @@ func GetTags(apps []i.IApp, detector *providers.Detector) (i.AppListWithDeps, i.
 	return appList, res
 }
 
-func depsChan(apps []i.IApp) chan Lib {
+func depsChan(apps <-chan i.IApp) chan Lib {
 	ch := make(chan Lib, 100)
 	go func() {
 		var wg sync.WaitGroup
-		for _, app := range apps {
+		for app := range apps {
 			wg.Add(1)
 			go func(app i.IApp) {
 				defer wg.Done()

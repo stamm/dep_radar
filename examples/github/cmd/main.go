@@ -18,6 +18,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Lmicroseconds)
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/favicon.ico", http.NotFound)
 	log.Println("Started: http://localhost:8081/")
@@ -25,28 +26,6 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
-	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
-	provDetector := providers.NewDetector().AddProvider(githubProv)
-	depDetector := deps.DefaultDetector()
-
-	// pkgs := []i.Pkg{"github.com/dep-radar/test_app"}
-
-	pkgs, err := githubProv.GetAllOrgRepos(context.Background(), "dep-radar")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create a little wrapper with custom logic for detect
-	apps := make([]i.IApp, 0, len(pkgs))
-	for _, pkg := range pkgs {
-		apiApp, err := app.New(pkg, "master", provDetector, depDetector)
-		if err != nil {
-			log.Printf("cant create app %s, got err: %s\n", pkg, err)
-		}
-		apps = append(apps, apiApp)
-	}
-
 	mapRec := html.MapRecomended{
 		"github.com/pkg/errors": html.Option{
 			Recomended: ">=0.8.0",
@@ -68,11 +47,35 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			NeedVersion: true,
 		},
 	}
+	start := time.Now()
+	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	provDetector := providers.NewDetector().AddProvider(githubProv)
+	depDetector := deps.DefaultDetector()
+
+	// pkgs := []i.Pkg{"github.com/dep-radar/test_app"}
+
+	// Create a little wrapper with custom logic for detect
+	apps := make(chan i.IApp, 10)
+	go func() {
+		pkgs, err := githubProv.GetAllOrgRepos(context.Background(), "dep-radar")
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, pkg := range pkgs {
+			apiApp, err := app.New(pkg, "master", provDetector, depDetector)
+			if err != nil {
+				log.Printf("cant create app %s, got err: %s\n", pkg, err)
+			}
+			apps <- apiApp
+		}
+		close(apps)
+	}()
+
 	htmlResult, err := html.AppsHTML(apps, provDetector, mapRec)
-	// htmlResult, err := html.LibsHtml(apps, provDetector)
+	// htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprint(w, htmlResult)
+	w.Write(htmlResult)
 	fmt.Fprintf(w, "took %s", time.Since(start))
 }

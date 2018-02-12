@@ -8,14 +8,14 @@
 <body>
 <table class="table table-bordered table-sm">
 <thead class="thead-dark">
-	<tr><th>libraries</th>{{range .AppView}}<th>{{.Name}}</th>{{end}}</tr>
+	<tr><th>libraries</th>{{range .LibView}}<th>{{.Name}}  <small>{{ .Hints }}</small></th>{{end}}</tr>
 </thead>
 <tbody>
-{{- $appView := .AppView }}
-{{- range $lib := .LibView }}
+{{- $libView := .LibView }}
+{{- range $app := .AppView }}
 <tr>
-	<td class="table-dark"><b>{{ $lib.Name }}</b> <small>{{ $lib.Hints }}</small></td>
-	{{- range $app := $appView }}
+	<td class="table-dark"><b>{{ $app.Name }}</b></td>
+	{{- range $lib := $libView }}
 		{{- $appLib := index $app.Libs $lib.Name }}
 		<td class="{{$appLib.Class}}" data-toggle="tooltip" title="{{$appLib.Title}}">{{$appLib.Version}}</td>
 	{{- end }}

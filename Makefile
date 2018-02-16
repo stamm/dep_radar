@@ -67,7 +67,7 @@ $(PKGS): $(TMP_DIR)
 	$(eval $@_package := $(subst test-,,$@))
 	$(eval prof_path = $(GOPATH)/src/$($@_package)/profile.out)
 	@go test -race -coverprofile=$(prof_path) -covermode=atomic $($@_package); 
-	@if [[ -f $(prof_path) ]]; then \
+	@if [ -f $(prof_path) ]; then \
 		cat $(prof_path) >> $(COVERAGE_FILE) ;\
 		rm $(prof_path) ;\
 	fi \

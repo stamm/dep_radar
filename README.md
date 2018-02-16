@@ -5,7 +5,7 @@
 
 ## Dep radar
 `dep radar` is a prototype to control Go dependencies in microservice world.
-`dep radar` is not stable yet. It requires Go 1.9 or newer to compile.
+`dep radar` requires Go 1.9 or newer to compile.
 
 # Screenshots
 ![Application screenshot](https://github.com/stamm/dep_radar/raw/master/docs/apps.png)
@@ -15,42 +15,49 @@
 ## How it works
 You can't just run some binary. You have to write a bit of code.
 Your code must implement:
-* Get a list of packages of applications what dependencies you want to monitor.
-* Init provider detector. It can be a default with support only github, but you can add you own provider.
-* A http handler with calling method for generate html table with all apps and dependencies.
+* Get a list of packages of applications what dependencies you want to monitor
+* Init provider detector. It can be a default with support only github, but you can add you own provider
+* A http handler with calling method for generate html table with all apps and dependencies
 
 Simple example for create a table with dependencies for whole github organization [dep-radar](https://github.com/dep-radar):
 
-```go
-package main
+`docker run -p 8081:8081 stamm/dep_radar:latest -github_org="dep-radar"`
 
-import (
-	"os"
+Or with showing state of dependencies:
 
-	"github.com/stamm/dep_radar/src/helpers"
-	"github.com/stamm/dep_radar/src"
-)
+* Recomended: restriction for version, for example `>=0.13`
+* Mandatory: lib must be in an app
+* Exclude: lib must be absent in an app
+* NeedVersion: you must use version, not hash
 
-func main() {
-	recom := src.MapRecomended{
-		"github.com/pkg/errors": src.Option{
-			Recomended: ">=0.8.0",
-			Mandatory:  true,
-			Exclude: false,
-			NeedVersion: true,
-		},
-	}
-	helpers.GithubOrg(os.Getenv("GITHUB_TOKEN"), "dep-radar", ":8081", recom)
-}
 
 ```
-You can find more [examples](examples/)
+cat <<EOT > /tmp/recomended.json
+{
+	"github.com/pkg/errors": {
+		"Recomended": ">=0.8.0",
+		"Mandatory":  true
+	},
+	"github.com/kr/fs": {
+		"Exclude": true
+	},
+	"github.com/pkg/profile": {
+		"NeedVersion": true
+	}
+}
+EOT
+```
+
+`docker run -v /tmp:/cfg -p 8081:8081 stamm/dep_radar:latest -recomended_file="/cfg/recomended.json" -github_org="dep-radar"`
+
+
+You can find more in [examples](examples/).
 
 
 
 ## Supported code storage
-* Github (env: GITHUB_TOKEN)
-* Private Bitbucket (env: BB_GIT_URL, BB_GO_GET_URL, BB_USER, BB_PASSWORD)
+* Github
+* Private Bitbucket
 
 ## Supported dep tools
 * [dep](https://github.com/golang/dep)

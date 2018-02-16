@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+
+## [1.1.0] - 2018-02-16
+### Added
+- Binary to analyze github organization
+- Docker image
+
+
+## [1.0.0] - 2018-02-12
+### Added
+- Support github and private bitbucket
+- Support dep and glide
+
+
 ## [0.1.0] - 2017-09-06
 ### Added
 - First release

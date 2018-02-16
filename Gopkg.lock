@@ -73,12 +73,6 @@
   version = "v1.2.1"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/vektra/mockery"
-  packages = ["."]
-  revision = "b6f6c13c25c3f0a17724553fa01580f328158d7a"
-
-[[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -87,6 +81,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c3701e047cb65ed7ce478539023bf6cd2ddce6df46fd1c5246db3aafe7937cc2"
+  inputs-digest = "a5d7ea96888e250db4c031875a9fc2964350e1909f4fb74f70494f9ab7e85154"
   solver-name = "gps-cdcl"
   solver-version = 1

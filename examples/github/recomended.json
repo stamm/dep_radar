@@ -1,0 +1,21 @@
+{
+	"github.com/pkg/errors": {
+		"Recomended": ">=0.8.0",
+		"Mandatory":  true
+	},
+	"github.com/pkg/sftp": {
+		"Recomended": ">=1.3.0"
+	},
+	"github.com/kr/fs": {
+		"Exclude": true
+	},
+	"github.com/pkg/bson": {
+		"Mandatory": true
+	},
+	"github.com/pkg/singlefile": {
+		"Exclude": true
+	},
+	"github.com/pkg/profile": {
+		"NeedVersion": true
+	}
+}

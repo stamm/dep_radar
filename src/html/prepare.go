@@ -41,7 +41,7 @@ type appLibView struct {
 }
 
 // AppsHTML return html with table. In the head apps, on the left side - libs
-func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecomended) templateStruct {
+func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) templateStruct {
 	appsMap, libsMap := fill.GetTags(apps, detector)
 	appsMap = fill.AddVersionLibToApp(appsMap, libsMap)
 
@@ -71,8 +71,8 @@ func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecome
 		var hints []string
 		recLib, ok := rec[i.Pkg(pkgName)]
 		if ok {
-			if recLib.Recomended != "" {
-				hints = append(hints, recLib.Recomended)
+			if recLib.Recommended != "" {
+				hints = append(hints, recLib.Recommended)
 			}
 			if recLib.Mandatory {
 				hints = append(hints, "mandatory")
@@ -134,13 +134,13 @@ func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecome
 					appLibData.Ok = false
 					appLibData.Title = "Need to exclude this library"
 				} else {
-					goodVersion, _ := versionpkg.Compare(opt.Recomended, dep.Version)
+					goodVersion, _ := versionpkg.Compare(opt.Recommended, dep.Version)
 					if goodVersion {
 						appLibData.Class = classMandatoryOk
 					} else {
 						appLibData.Class = classMandatoryBad
 						appLibData.Ok = false
-						appLibData.Title = "Need to change version to " + opt.Recomended
+						appLibData.Title = "Need to change version to " + opt.Recommended
 					}
 				}
 				if opt.NeedVersion && dep.Version == "" {

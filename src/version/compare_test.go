@@ -9,9 +9,9 @@ import (
 )
 
 type dataType struct {
-	Recomended string
-	Actual     string
-	Result     bool
+	Recommended string
+	Actual      string
+	Result      bool
 }
 
 func TestCompareVersion(t *testing.T) {
@@ -47,8 +47,8 @@ func TestCompareVersion(t *testing.T) {
 		{"^0.5.1|>=1.2.0", "1.1.0", false},
 	}
 	for _, line := range data {
-		ok, err := version.Compare(line.Recomended, line.Actual)
-		require.NoError(err, fmt.Sprintf("Not expect error %s on Compare(%s, %s)", err, line.Recomended, line.Actual))
-		require.Equal(line.Result, ok, fmt.Sprintf("Wrong value %t instead of %t on Compare(%s, %s)", ok, line.Result, line.Recomended, line.Actual))
+		ok, err := version.Compare(line.Recommended, line.Actual)
+		require.NoError(err, fmt.Sprintf("Not expect error %s on Compare(%s, %s)", err, line.Recommended, line.Actual))
+		require.Equal(line.Result, ok, fmt.Sprintf("Wrong value %t instead of %t on Compare(%s, %s)", ok, line.Result, line.Recommended, line.Actual))
 	}
 }

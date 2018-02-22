@@ -13,16 +13,16 @@ func Compare(recomends, actual string) (bool, error) {
 		return false, nil
 	}
 	isErr := false
-	for _, recomended := range strings.Split(recomends, "|") {
-		c, err := semver.NewConstraint(recomended)
+	for _, recommended := range strings.Split(recomends, "|") {
+		c, err := semver.NewConstraint(recommended)
 		if err != nil {
 			isErr = true
-			log.Printf("err (%s, %s) = %+v\n", recomended, actual, err)
+			log.Printf("err (%s, %s) = %+v\n", recommended, actual, err)
 		}
 		v, err := semver.NewVersion(actual)
 		if err != nil {
 			isErr = true
-			log.Printf("err (%s, %s) = %+v\n", recomended, actual, err)
+			log.Printf("err (%s, %s) = %+v\n", recommended, actual, err)
 		}
 		if isErr {
 			return false, err

@@ -25,17 +25,17 @@ Simple example for create a table with dependencies for whole github organizatio
 
 Or with showing state of dependencies:
 
-* Recomended: restriction for version, for example `>=0.13`
+* Recommended: restriction for version, for example `>=0.13`
 * Mandatory: lib must be in an app
 * Exclude: lib must be absent in an app
 * NeedVersion: you must use version, not hash
 
 
 ```
-cat <<EOT > /tmp/recomended.json
+cat <<EOT > /tmp/recommended.json
 {
 	"github.com/pkg/errors": {
-		"Recomended": ">=0.8.0",
+		"Recommended": ">=0.8.0",
 		"Mandatory":  true
 	},
 	"github.com/kr/fs": {
@@ -48,7 +48,7 @@ cat <<EOT > /tmp/recomended.json
 EOT
 ```
 
-`docker run -v /tmp:/cfg -p 8081:8081 stamm/dep_radar:latest -recomended_file="/cfg/recomended.json" -github_org="dep-radar"`
+`docker run -v /tmp:/cfg -p 8081:8081 stamm/dep_radar:latest -recommended_file="/cfg/recommended.json" -github_org="dep-radar"`
 
 
 You can find more in [examples](examples/).

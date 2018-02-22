@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
-	recom := src.MapRecomended{
+	recom := src.MapRecommended{
 		"github.com/pkg/errors": src.Option{
-			Recomended: ">=0.8.0",
-			Mandatory:  true,
+			Recommended: ">=0.8.0",
+			Mandatory:   true,
 		},
 		"github.com/pkg/sftp": src.Option{
-			Recomended: ">=1.3.0",
+			Recommended: ">=1.3.0",
 		},
 		"github.com/kr/fs": src.Option{
 			Exclude: true,

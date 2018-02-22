@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	recomendedFile := flag.String("recomended_file", "", "path to file with recomended versions of libraries")
+	recommendedFile := flag.String("recommended_file", "", "path to file with recommended versions of libraries")
 	githubToken := flag.String("github_token", "", "token for github: maybe empty, but limit for requested applies")
 	githubOrg := flag.String("github_org", "", "name for github organization")
 	listen := flag.String("listen", ":8081", "on which ip and port http server will be listen to")
@@ -26,11 +26,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	var recom src.MapRecomended
-	if *recomendedFile != "" {
-		raw, err := ioutil.ReadFile(*recomendedFile)
+	var recom src.MapRecommended
+	if *recommendedFile != "" {
+		raw, err := ioutil.ReadFile(*recommendedFile)
 		if err != nil {
-			fmt.Printf("error on read file %s: %s\n", *recomendedFile, err.Error())
+			fmt.Printf("error on read file %s: %s\n", *recommendedFile, err.Error())
 			os.Exit(1)
 		}
 		err = json.Unmarshal(raw, &recom)

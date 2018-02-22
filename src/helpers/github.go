@@ -17,7 +17,7 @@ import (
 )
 
 // GithubOrg starts an http server for this organisation
-func GithubOrg(token, orgName, listen string, recom src.MapRecomended) {
+func GithubOrg(token, orgName, listen string, recom src.MapRecommended) {
 	log.SetFlags(log.Lmicroseconds)
 	http.HandleFunc("/", wrapOrgHandler(token, orgName, recom))
 	http.HandleFunc("/favicon.ico", http.NotFound)
@@ -26,7 +26,7 @@ func GithubOrg(token, orgName, listen string, recom src.MapRecomended) {
 }
 
 // GithubPkgs starts an http server for particular list of applications
-func GithubPkgs(token, listen string, recom src.MapRecomended, pkgs ...string) {
+func GithubPkgs(token, listen string, recom src.MapRecommended, pkgs ...string) {
 	log.SetFlags(log.Lmicroseconds)
 	http.HandleFunc("/", wrapHandler(token, recom, pkgs...))
 	http.HandleFunc("/favicon.ico", http.NotFound)
@@ -34,7 +34,7 @@ func GithubPkgs(token, listen string, recom src.MapRecomended, pkgs ...string) {
 	http.ListenAndServe(listen, nil)
 }
 
-func wrapOrgHandler(token, orgName string, recom src.MapRecomended) func(w http.ResponseWriter, r *http.Request) {
+func wrapOrgHandler(token, orgName string, recom src.MapRecommended) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		githubProv := github.New(github.NewHTTPWrapper(token, 10))
@@ -68,7 +68,7 @@ func wrapOrgHandler(token, orgName string, recom src.MapRecomended) func(w http.
 	}
 }
 
-func wrapHandler(token string, recom src.MapRecomended, pkgs ...string) func(w http.ResponseWriter, r *http.Request) {
+func wrapHandler(token string, recom src.MapRecommended, pkgs ...string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		githubProv := github.New(github.NewHTTPWrapper(token, 10))

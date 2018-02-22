@@ -12,7 +12,7 @@ import (
 )
 
 // LibsHTML return html with table. In the head libs, on the left side - apps
-func LibsHTML(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecomended) ([]byte, error) {
+func LibsHTML(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) ([]byte, error) {
 	var buf bytes.Buffer
 	raw, err := templates.Asset("src/html/templates/libs.html")
 	if err != nil {

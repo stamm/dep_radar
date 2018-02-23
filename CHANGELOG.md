@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.3] - 2018-02-23
+### Changed
+- Refactor travis.yaml, Makefile to create release
+
+
 ## [1.1.2] - 2018-02-23
 ### Changed
 - Use go 1.10.0 for docker image

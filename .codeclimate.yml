@@ -1,4 +1,5 @@
-engines:
+version: "2"
+plugins:
   gofmt:
     enabled: true
   govet:
@@ -7,9 +8,7 @@ engines:
     enabled: true
   fixme:
     enabled: true
-ratings:
-  paths:
-    - "**.go"
-exclude_paths:
+exclude_patterns:
   - vendor/
   - tmp/
+  - src/html/templates/bindata.go

@@ -1,22 +1,57 @@
 language: go
-go:
-  - 1.10.x
-  - tip
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-script:
-  - make coverage
-after_success:
-  - ./cc-test-reporter after-build --exit-code $EXIT_CODE
-  - bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+  - stage: test
+    go_import_path: github.com/stamm/dep_radar
+    os: linux
+    go: 1.10.x
+    before_script:
+    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+    - chmod +x ./cc-test-reporter
+    - "./cc-test-reporter before-build -d"
+    - go get github.com/mattn/goveralls
+    script:
+    - make coverage
+    after_success:
+    - "./cc-test-reporter format-coverage -d -t gocov ./tmp/coverage.txt"
+    - "./cc-test-reporter sum-coverage -d coverage/codeclimate.json"
+    - "./cc-test-reporter upload-coverage -d"
+    - bash <(curl -s https://codecov.io/bash)
+    - $GOPATH/bin/goveralls -service=travis-ci -coverprofile=./tmp/coverage.txt
+  - &simple-test
+    go: tip
+    stage: test
+    go_import_path: github.com/stamm/dep_radar
+    install: skip
+    script: make test
+  # - <<: *simple-test
+  #   go: 1.11.x
+  - stage: deploy
+    go: 1.10.x
+    go_import_path: github.com/golang/dep
+    install: skip
+    script: skip
+    before_deploy:
+    - make RELEASE=$(git describe --tags --dirty) build_release
+    deploy:
+    - provider: releases
+      api_key:
+        secure: bxYQqjVCOEhunTOATwgpOfjKJpkf8rrP+/UvD4GHscX7YDitYDWv/95GG4h+W+vCLYcnK0P3OdJEbteBfIwoVCU/VTRLI5zRd6UD5KKSvoG6iOONKmpJoa36e8NFswbpzJ99+6LJHkbqTRzIjgttKm1LwCLhL1xbfVuAUFwRnP23ex8fPK4IH3wM3C+FY7blG5zRJYAfDecszy8k/4rNZv/0g3CGSJinFh/McDQsWi53wMPPR62XkLKNyiZ01M/ur6YbT0CHq73h0xSrPCbtKVDl2WiIayq4z0/ERFK+hqRm4nUHKzScoVvLs7WcdKgdgsAvSDZMqB4qZzWP3B65cWKE2x4dJTjbW2lRSp23nnWObapQADqNwfSKu1aRQWE/qn4MrKowXKH6I/fRR4ZEmiVcwIOluI9U4NF0WP5ZUeinx2yfGnXY1oePBWHpvt5aKgyGsgUn2ZRUtXkMtIpVvU0wo4DeKKk7bv83yG47uwJ6IN8nrcUYxekx3+faR/Xl4J2DCDi20jucIDl0OtSjzfQxwVIxdKsPjpAHf81ahBqp0CGern2AThHNd576Z8pEj/NdM8ZYM8yjUKRiV9TjGtPGzkEbMaMbw1yKZNvc97PmQHuhmZPqgThMuW+7rJm87ISed7GOq3dYuQyYvv3uNN7f9Wp3iWvkCVau51Tzv/Q=
+      file_glob: true
+      file: tmp/release/*
+      skip_cleanup: true
+      on:
+        repo: stamm/dep_radar
+        branch: master
+        tags: true
+      after_deploy:
+      - make RELEASE=$(git describe --tags --dirty) docker_latest
 cache:
   directories:
-    - $GOPATH/bin
-    - vendor
+  - "$GOPATH/bin"
+  - vendor
   timeout: 1000
 notifications:
   email:
-    on_success: never
+    on_success: change
     on_failure: always

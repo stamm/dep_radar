@@ -6,14 +6,16 @@ jobs:
     os: linux
     go: 1.10.x
     before_script:
-    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-      > ./cc-test-reporter
+    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
     - chmod +x ./cc-test-reporter
     - "./cc-test-reporter before-build"
     script:
     - make coverage
     after_success:
-    - "./cc-test-reporter after-build -d --exit-code $TRAVIS_TEST_RESULT"
+    - "./cc-test-reporter format-coverage -t gocov ./tmp/coverage.txt"
+    - "./cc-test-reporter sum-coverage coverage/codeclimate.json"
+    - "./cc-test-reporter upload-coverage"
+    # - "./cc-test-reporter after-build -d --exit-code $TRAVIS_TEST_RESULT"
     - bash <(curl -s https://codecov.io/bash)
   - &simple-test
     go: tip

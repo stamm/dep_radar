@@ -12,12 +12,13 @@ import (
 )
 
 const (
+	// Prefix for github
 	Prefix = "github.com"
 )
 
 var (
-	_ i.ITagGetter = &Github{}
-	_ i.IProvider  = &Github{}
+	_ i.ITagGetter = &Provider{}
+	_ i.IProvider  = &Provider{}
 	_ i.IWebClient = &HTTPWrapper{}
 )
 
@@ -30,7 +31,7 @@ type commit struct {
 	SHA string `json:"sha"`
 }
 
-type Github struct {
+type Provider struct {
 	token  string
 	client i.IWebClient
 }
@@ -48,34 +49,44 @@ func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 }
 
 func (c *HTTPWrapper) Get(url string) ([]byte, error) {
-	if c.token != "" {
-		urlObj, err := urlpkg.Parse(url)
-		if err == nil {
-			if len(urlObj.Query()) == 0 {
-				url += "?access_token=" + c.token
-			} else {
-				url += "&access_token=" + c.token
-			}
-		}
+	newURL, err := c.getURL(url)
+	if err != nil {
+		return []byte{}, err
 	}
-	return c.client.Get(url)
+	return c.client.Get(newURL)
 }
 
-func New(client i.IWebClient) *Github {
-	return &Github{
+func (c *HTTPWrapper) getURL(url string) (string, error) {
+	if c.token == "" {
+		return url, nil
+	}
+	urlObj, err := urlpkg.Parse(url)
+	if err != nil {
+		return "", err
+	}
+	if len(urlObj.Query()) == 0 {
+		url += "?access_token=" + c.token
+	} else {
+		url += "&access_token=" + c.token
+	}
+	return url, nil
+}
+
+func New(client i.IWebClient) *Provider {
+	return &Provider{
 		client: client,
 	}
 }
 
-func (g Github) Tags(pkg i.Pkg) ([]i.Tag, error) {
+func (g Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	return g.tagsHttp(pkg)
 }
 
-func (g Github) File(pkg i.Pkg, branch, name string) ([]byte, error) {
+func (g Provider) File(pkg i.Pkg, branch, name string) ([]byte, error) {
 	return g.client.Get(g.makeURL(pkg, branch, name))
 }
 
-func (g Github) makeURL(pkg i.Pkg, branch, name string) string {
+func (g Provider) makeURL(pkg i.Pkg, branch, name string) string {
 	pkgName := strings.Trim(string(pkg), "/")
 	re := regexp.MustCompile("^" + regexp.QuoteMeta(Prefix) + "/")
 	repo := re.ReplaceAllString(pkgName, "")
@@ -88,15 +99,12 @@ func (g Github) makeURL(pkg i.Pkg, branch, name string) string {
 	return "https://raw.githubusercontent.com/" + url
 }
 
-func (g Github) GoGetUrl() string {
+func (g Provider) GoGetUrl() string {
 	return Prefix
 }
 
-func (g Github) tagsHttp(pkg i.Pkg) ([]i.Tag, error) {
+func (g Provider) tagsHttp(pkg i.Pkg) ([]i.Tag, error) {
 	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags?per_page=100"
-	if string(pkg) == "github.com/pkg/errors" {
-		fmt.Printf("url = %+v\n", url)
-	}
 	content, err := g.client.Get(url)
 	if err != nil {
 		return nil, err

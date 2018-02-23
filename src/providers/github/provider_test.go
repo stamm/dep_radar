@@ -179,3 +179,49 @@ func TestHTTPWrapper_WithToken_AddToken(t *testing.T) {
 	require.NoError(err)
 	require.EqualValues("res", content)
 }
+
+func TestHTTPWrapper_GetURL_WithToken_ExpectAdd(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	client := &HTTPWrapper{
+		token: "a",
+	}
+	url, err := client.getURL("tags?test=1")
+	require.NoError(err)
+	require.EqualValues("tags?test=1&access_token=a", url)
+}
+
+func TestHTTPWrapper_GetURL_WrongUrl(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	client := &HTTPWrapper{
+		token: "a",
+	}
+	url, err := client.getURL("cache_object:foo")
+	require.Error(err)
+	require.EqualValues("", url)
+}
+
+func TestHTTPWrapper_Get_WrongURL(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	client := &HTTPWrapper{
+		token: "a",
+	}
+	content, err := client.Get("cache_object:foo")
+	require.Error(err)
+	require.EqualValues("", content)
+}
+
+func TestHTTPWrapper_New(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+
+	client := NewHTTPWrapper("a", 2)
+	url, err := client.getURL("tags")
+	require.NoError(err)
+	require.EqualValues("tags?access_token=a", url)
+}

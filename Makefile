@@ -106,21 +106,9 @@ test-race:
 	env GOGC=off go test -race $(TEST_ARGS) ./...
 
 .PHONY: coverage
-coverage: 
-	go test -i ./...
-	rm -f $(COVERAGE_FILE)
-	make -j $(PARALLEL_COUNT) $(PKGS)
+coverage: vendor/touch
+	go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
 
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
-
-.PHONY: $(PKGS)
-$(PKGS): $(TMP_DIR)
-	$(eval $@_package := $(subst test-,,$@))
-	$(eval prof_path = $(GOPATH)/src/$($@_package)/profile.out)
-	@go test -race -coverprofile=$(prof_path) -covermode=atomic $($@_package); 
-	@if [ -f $(prof_path) ]; then \
-		cat $(prof_path) >> $(COVERAGE_FILE) ;\
-		rm $(prof_path) ;\
-	fi \
 

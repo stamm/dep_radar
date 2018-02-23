@@ -1,6 +1,5 @@
 language: go
 go:
-  - 1.9.x
   - 1.10.x
   - tip
 before_script:
@@ -11,7 +10,6 @@ script:
   - make coverage
 after_success:
   - ./cc-test-reporter after-build --exit-code $EXIT_CODE
-  - codeclimate-test-reporter < ./tmp/coverage.txt
   - bash <(curl -s https://codecov.io/bash)
 cache:
   directories:

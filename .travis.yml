@@ -13,7 +13,7 @@ jobs:
     script:
     - make coverage
     after_success:
-    - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+    - "./cc-test-reporter after-build -d --exit-code $TRAVIS_TEST_RESULT"
     - bash <(curl -s https://codecov.io/bash)
   - &simple-test
     go: tip

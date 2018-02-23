@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 
+## [1.1.1] - 2018-02-23
+### Fixed
+- Typo
+
+
 ## [1.1.0] - 2018-02-16
 ### Added
 - Binary to analyze github organization

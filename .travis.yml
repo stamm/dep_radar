@@ -1,7 +1,7 @@
 language: go
 jobs:
   include:
-  - stage: test
+  - stage: coverage
     go_import_path: github.com/stamm/dep_radar
     os: linux
     go: 1.10.x
@@ -15,18 +15,16 @@ jobs:
     after_success:
     - "./cc-test-reporter after-build --exit-code $EXIT_CODE"
     - bash <(curl -s https://codecov.io/bash)
-  - go: 1.10.x
+  - &simple-test
+    go: 1.10.x
     stage: test
     go_import_path: github.com/stamm/dep_radar
     install: skip
-    script: go test -race ./...
-  - go: tip
-    stage: test
-    go_import_path: github.com/stamm/dep_radar
-    install: skip
-    script: go test -race ./...
-  - go: 1.10.x
-    stage: deploy
+    script: make test
+  - <<: *simple-test
+    go: tip
+  - stage: deploy
+    go: 1.10.x
     go_import_path: github.com/golang/dep
     install: skip
     script: skip

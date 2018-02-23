@@ -101,7 +101,7 @@ docker_latest: docker_push
 
 ### TESTS
 .PHONY: test
-test:
+test: vendor/touch
 	env GOGC=off go test $(TEST_ARGS) ./...
 
 .PHONY: test

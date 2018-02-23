@@ -15,7 +15,6 @@ jobs:
     - "./cc-test-reporter format-coverage -t gocov ./tmp/coverage.txt"
     - "./cc-test-reporter sum-coverage coverage/codeclimate.json"
     - "./cc-test-reporter upload-coverage"
-    # - "./cc-test-reporter after-build -d --exit-code $TRAVIS_TEST_RESULT"
     - bash <(curl -s https://codecov.io/bash)
   - &simple-test
     go: tip

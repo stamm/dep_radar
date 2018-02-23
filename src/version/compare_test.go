@@ -14,6 +14,30 @@ type dataType struct {
 	Result      bool
 }
 
+func TestWithEmpty(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+	ok, err := version.Compare("", "1.0.0")
+	require.NoError(err)
+	require.False(ok)
+
+	ok, err = version.Compare("1.0.0", "")
+	require.NoError(err)
+	require.False(ok)
+}
+
+func TestWithError(t *testing.T) {
+	t.Parallel()
+	require := require.New(t)
+	ok, err := version.Compare("erunda", "1.0.0")
+	require.Error(err)
+	require.False(ok)
+
+	ok, err = version.Compare("1.0.0", "erunda")
+	require.Error(err)
+	require.False(ok)
+}
+
 func TestCompareVersion(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)

@@ -9,6 +9,7 @@ jobs:
     - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
     - chmod +x ./cc-test-reporter
     - "./cc-test-reporter before-build -d"
+    - go get github.com/mattn/goveralls
     script:
     - make coverage
     after_success:
@@ -16,6 +17,7 @@ jobs:
     - "./cc-test-reporter sum-coverage -d coverage/codeclimate.json"
     - "./cc-test-reporter upload-coverage -d"
     - bash <(curl -s https://codecov.io/bash)
+    - $GOPATH/bin/goveralls -service=travis-ci -coverprofile=./tmp/coverage.txt
   - &simple-test
     go: tip
     stage: test

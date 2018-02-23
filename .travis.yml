@@ -8,13 +8,13 @@ jobs:
     before_script:
     - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
     - chmod +x ./cc-test-reporter
-    - "./cc-test-reporter before-build"
+    - "./cc-test-reporter before-build -d"
     script:
     - make coverage
     after_success:
-    - "./cc-test-reporter format-coverage -t gocov ./tmp/coverage.txt"
-    - "./cc-test-reporter sum-coverage coverage/codeclimate.json"
-    - "./cc-test-reporter upload-coverage"
+    - "./cc-test-reporter format-coverage -d -t gocov ./tmp/coverage.txt"
+    - "./cc-test-reporter sum-coverage -d coverage/codeclimate.json"
+    - "./cc-test-reporter upload-coverage -d"
     - bash <(curl -s https://codecov.io/bash)
   - &simple-test
     go: tip
@@ -51,5 +51,5 @@ cache:
   timeout: 1000
 notifications:
   email:
-    on_success: never
+    on_success: change
     on_failure: always

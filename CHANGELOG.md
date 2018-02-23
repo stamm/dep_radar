@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.2] - 2018-02-23
+### Changed
+- Use go 1.10.0 for docker image
+- Use alpine 3.7 for docker image
+### Added
+- Workaround for release in Makefile
+- Use upx for minify binary in docker image
 
 ## [1.1.1] - 2018-02-23
 ### Fixed

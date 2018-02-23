@@ -65,22 +65,25 @@ release: mkdir_release
 	git push --tags
 	@$(MAKE) -B -j3 tmp/releases/$(RELEASE)/$(APP)-darwin-amd64.tar.gz tmp/releases/$(RELEASE)/$(APP)-linux-amd64.tar.gz docker_latest
 
+build_release: mkdir_release
+	@$(MAKE) -B -j3 tmp/release/$(APP)-darwin-amd64.tar.gz tmp/release/$(APP)-linux-amd64.tar.gz
 
 .PHONY: mkdir_release
 mkdir_release:
-	mkdir -p tmp/releases/$(RELEASE)/
+	mkdir -p tmp/release/
+	rm -rf tmp/release/*
 
-tmp/releases/$(RELEASE)/$(APP)-darwin-amd64:
+tmp/release/$(APP)-darwin-amd64:
 	env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $@ ./cmd/dep_radar/main.go
 
-tmp/releases/$(RELEASE)/$(APP)-darwin-amd64.tar.gz: tmp/releases/$(RELEASE)/$(APP)-darwin-amd64
-	tar -czf $@ tmp/releases/$(RELEASE)/$(APP)-darwin-amd64
+tmp/release/$(APP)-darwin-amd64.tar.gz: tmp/release/$(APP)-darwin-amd64
+	tar -czf $@ tmp/release/$(APP)-darwin-amd64
 
-tmp/releases/$(RELEASE)/$(APP)-linux-amd64:
+tmp/release/$(APP)-linux-amd64:
 	env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $@ ./cmd/dep_radar/main.go
 
-tmp/releases/$(RELEASE)/$(APP)-linux-amd64.tar.gz: tmp/releases/$(RELEASE)/$(APP)-linux-amd64
-	tar -czf $@ tmp/releases/$(RELEASE)/$(APP)-linux-amd64
+tmp/release/$(APP)-linux-amd64.tar.gz: tmp/release/$(APP)-linux-amd64
+	tar -czf $@ tmp/release/$(APP)-linux-amd64
 
 ### DOCKER IMAGES
 .PHONY: docker_build
@@ -92,7 +95,7 @@ docker_push: docker_build
 	docker push $(CONTAINER_IMAGE):$(RELEASE)
 
 .PHONY: docker_latest
-docker_latest: docker push
+docker_latest: docker_push
 	docker tag $(CONTAINER_IMAGE):$(RELEASE) $(CONTAINER_IMAGE):latest
 	docker push $(CONTAINER_IMAGE):latest
 

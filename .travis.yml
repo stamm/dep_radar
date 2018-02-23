@@ -28,7 +28,7 @@ jobs:
   #   go: 1.11.x
   - stage: deploy
     go: 1.10.x
-    go_import_path: github.com/golang/dep
+    go_import_path: github.com/stamm/dep_radar
     install: skip
     script: skip
     before_deploy:

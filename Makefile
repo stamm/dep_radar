@@ -106,7 +106,7 @@ test-race:
 	env GOGC=off go test -race $(TEST_ARGS) ./...
 
 .PHONY: coverage
-coverage: vendor/touch
+coverage: $(TMP_DIR) vendor/touch
 	go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
 
 $(TMP_DIR):

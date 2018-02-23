@@ -44,8 +44,9 @@ jobs:
         repo: stamm/dep_radar
         branch: master
         tags: true
-      after_deploy:
-      - make RELEASE=$(git describe --tags --dirty) docker_latest
+    after_deploy:
+    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    - make RELEASE=$(git describe --tags --dirty) docker_latest
 cache:
   directories:
   - "$GOPATH/bin"

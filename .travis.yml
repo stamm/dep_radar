@@ -2,7 +2,7 @@ language: go
 go:
 - 1.10.x
 - tip
-script: make test
+script: make test build
 jobs:
   include:
   - stage: coverage

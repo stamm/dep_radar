@@ -17,6 +17,7 @@ CONTAINER_IMAGE?=docker.io/stamm/${APP}
 APP_BIN=$(GOPATH)/bin/$(APP)
 
 GOMETALINTER_BIN:=$(GOBIN)/gometalinter.v2
+GOLINT_BIN:=$(GOBIN)/golint
 
 
 # GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')

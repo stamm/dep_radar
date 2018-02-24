@@ -1,5 +1,7 @@
 package interfaces
 
+import "context"
+
 type Version string
 type Hash string
 type Pkg string
@@ -8,7 +10,7 @@ type Pkg string
 type IApp interface {
 	Package() Pkg
 	Provider() IProvider
-	Deps() (AppDeps, error)
+	Deps(context.Context) (AppDeps, error)
 	Branch() string
 }
 
@@ -17,7 +19,7 @@ type ILib interface {
 }
 
 type IDeps interface {
-	Deps() (AppDeps, error)
+	Deps(context.Context) (AppDeps, error)
 }
 
 // TODO maybe move
@@ -45,17 +47,17 @@ type Tag struct {
 
 //go:generate mockery -name=IWebClient -case=underscore
 type IWebClient interface {
-	Get(string) ([]byte, error)
+	Get(context.Context, string) ([]byte, error)
 }
 
 // Provider
 
 type IFileGetter interface {
-	File(pkg Pkg, branch, filename string) ([]byte, error)
+	File(ctx context.Context, pkg Pkg, branch, filename string) ([]byte, error)
 }
 
 type ITagGetter interface {
-	Tags(Pkg) ([]Tag, error)
+	Tags(context.Context, Pkg) ([]Tag, error)
 }
 
 //go:generate mockery -name=IProvider -case=underscore
@@ -67,21 +69,21 @@ type IProvider interface {
 
 //go:generate mockery -name=IReposGetter -case=underscore
 type IReposGetter interface {
-	Apps() ([]Pkg, error)
+	Apps(context.Context) ([]Pkg, error)
 	// Libs() []ILib
 }
 
-type IDetector interface {
-	Detect(Pkg) (IProvider, error)
+type IProviderDetector interface {
+	Detect(context.Context, Pkg) (IProvider, error)
 }
 
 type IDepDetector interface {
-	Deps(IApp) (AppDeps, error)
+	Deps(context.Context, IApp) (AppDeps, error)
 	AddTool(IDepTool) IDepDetector
 }
 
 //go:generate mockery -name=IDepTool -case=underscore
 type IDepTool interface {
-	Deps(IApp) (AppDeps, error)
+	Deps(context.Context, IApp) (AppDeps, error)
 	Name() string
 }

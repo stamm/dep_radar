@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -53,7 +54,7 @@ func NewClient(op Options, limit int) *Client {
 }
 
 // Get the html
-func (c *Client) Get(uri string) ([]byte, error) {
+func (c *Client) Get(ctx context.Context, uri string) ([]byte, error) {
 	log.Printf("Start getting url %s\n", uri)
 	c.limitCh <- struct{}{}
 	defer func() {
@@ -68,6 +69,7 @@ func (c *Client) Get(uri string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 
 	req.Header.Set("Content-Type", "application/json")
 	if c.Options.User != "" && c.Options.Password != "" {

@@ -31,7 +31,7 @@ func (g *Provider) GetAllOrgRepos(ctx context.Context, org string) ([]i.Pkg, err
 func (g *Provider) getRepos(ctx context.Context, org string) ([]reposResponse, error) {
 	var repos []reposResponse
 	url := g.getOrgReposURL(org)
-	reposResponse, err := g.client.Get(url)
+	reposResponse, err := g.client.Get(ctx, url)
 	if err != nil {
 		return repos, err
 	}

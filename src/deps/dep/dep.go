@@ -1,6 +1,7 @@
 package dep
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/BurntSushi/toml"
@@ -35,11 +36,11 @@ func (t *Tool) Name() string {
 	return "dep"
 }
 
-func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
+func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.DepManager,
 	}
-	content, err := a.Provider().File(a.Package(), a.Branch(), file)
+	content, err := a.Provider().File(ctx, a.Package(), a.Branch(), file)
 	if err != nil {
 		return res, err
 	}

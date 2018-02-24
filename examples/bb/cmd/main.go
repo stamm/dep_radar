@@ -38,7 +38,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, pkg := range pkgs {
-			apiApp, err := app.New(pkg, "master", provDetector, depDetector)
+			apiApp, err := app.New(context.Background(), pkg, "master", provDetector, depDetector)
 			if err != nil {
 				log.Printf("cant create app %s, got err: %s\n", pkg, err)
 			}
@@ -46,7 +46,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	htmlResult, err := html.LibsHTML(apps, provDetector, nil)
+	htmlResult, err := html.LibsHTML(context.Background(), apps, provDetector, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

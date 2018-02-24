@@ -1,6 +1,7 @@
 package bitbucketprivate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -73,13 +74,13 @@ func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *Provider 
 	}
 }
 
-func (p *Provider) File(pkg i.Pkg, branch, name string) ([]byte, error) {
-	project, err := p.getProject(pkg)
+func (p *Provider) File(ctx context.Context, pkg i.Pkg, branch, name string) ([]byte, error) {
+	project, err := p.getProject(ctx, pkg)
 	if err != nil {
 		return nil, err
 	}
 	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s?at=refs%%2Fheads%%2F%s", p.apiUrl, project, p.repoName(pkg), name, branch)
-	return p.httpClient.Get(url)
+	return p.httpClient.Get(ctx, url)
 }
 
 func (p *Provider) GoGetUrl() string {
@@ -87,7 +88,7 @@ func (p *Provider) GoGetUrl() string {
 }
 
 // todo cache result in map
-func (p *Provider) getProject(pkg i.Pkg) (string, error) {
+func (p *Provider) getProject(ctx context.Context, pkg i.Pkg) (string, error) {
 	p.muMap.RLock()
 	if project, ok := p.mapProject[pkg]; ok {
 		p.muMap.RUnlock()
@@ -97,7 +98,7 @@ func (p *Provider) getProject(pkg i.Pkg) (string, error) {
 	// if p.project != "" {
 	// 	return nil
 	// }
-	project, err := GetProject(p.httpClient, pkg, p.gitDomain)
+	project, err := GetProject(ctx, p.httpClient, pkg, p.gitDomain)
 	if err != nil {
 		return "", err
 	}
@@ -110,8 +111,8 @@ func (p *Provider) getProject(pkg i.Pkg) (string, error) {
 }
 
 // Tags get tags from bitbucket
-func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
-	project, err := p.getProject(pkg)
+func (p *Provider) Tags(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
+	project, err := p.getProject(ctx, pkg)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
 		isLastPage bool
 	)
 	for !isLastPage {
-		tags, err := p.tags(pkg, project, start)
+		tags, err := p.tags(ctx, pkg, project, start)
 		if err != nil {
 			return tagsResult, fmt.Errorf("Error on getting tags: %s", err)
 		}
@@ -135,10 +136,10 @@ func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	return tagsResult, nil
 }
 
-func (p *Provider) tags(pkg i.Pkg, project string, start int) (TagsResponse, error) {
+func (p *Provider) tags(ctx context.Context, pkg i.Pkg, project string, start int) (TagsResponse, error) {
 	var tags TagsResponse
 	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", p.apiUrl, project, p.repoName(pkg), start)
-	reposResponse, err := p.httpClient.Get(url)
+	reposResponse, err := p.httpClient.Get(ctx, url)
 	if err != nil {
 		return tags, err
 	}

@@ -19,7 +19,8 @@ import (
 // GithubOrg starts an http server for this organisation
 func GithubOrg(token, orgName, listen string, recom src.MapRecommended) {
 	log.SetFlags(log.Lmicroseconds)
-	http.HandleFunc("/", wrapOrgHandler(token, orgName, recom))
+	ctx := context.Background()
+	http.HandleFunc("/", wrapOrgHandler(ctx, token, orgName, recom))
 	http.HandleFunc("/favicon.ico", http.NotFound)
 	log.Println("Started: http://localhost:8081/")
 	http.ListenAndServe(listen, nil)
@@ -28,13 +29,14 @@ func GithubOrg(token, orgName, listen string, recom src.MapRecommended) {
 // GithubPkgs starts an http server for particular list of applications
 func GithubPkgs(token, listen string, recom src.MapRecommended, pkgs ...string) {
 	log.SetFlags(log.Lmicroseconds)
-	http.HandleFunc("/", wrapHandler(token, recom, pkgs...))
+	ctx := context.Background()
+	http.HandleFunc("/", wrapHandler(ctx, token, recom, pkgs...))
 	http.HandleFunc("/favicon.ico", http.NotFound)
 	log.Println("Started: http://localhost:8081/")
 	http.ListenAndServe(listen, nil)
 }
 
-func wrapOrgHandler(token, orgName string, recom src.MapRecommended) func(w http.ResponseWriter, r *http.Request) {
+func wrapOrgHandler(ctx context.Context, token, orgName string, recom src.MapRecommended) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		githubProv := github.New(github.NewHTTPWrapper(token, 10))
@@ -48,7 +50,7 @@ func wrapOrgHandler(token, orgName string, recom src.MapRecommended) func(w http
 				log.Fatal(err)
 			}
 			for _, pkg := range pkgs {
-				apiApp, err := app.New(pkg, "master", provDetector, depDetector)
+				apiApp, err := app.New(ctx, pkg, "master", provDetector, depDetector)
 				if err != nil {
 					log.Printf("cant create app %s, got err: %s\n", pkg, err)
 				}
@@ -57,7 +59,7 @@ func wrapOrgHandler(token, orgName string, recom src.MapRecommended) func(w http
 			close(apps)
 		}()
 
-		htmlResult, err := html.AppsHTML(apps, provDetector, recom)
+		htmlResult, err := html.AppsHTML(ctx, apps, provDetector, recom)
 		// htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
 		if err != nil {
 			fmt.Fprintf(w, "Error: %s", err)
@@ -68,7 +70,7 @@ func wrapOrgHandler(token, orgName string, recom src.MapRecommended) func(w http
 	}
 }
 
-func wrapHandler(token string, recom src.MapRecommended, pkgs ...string) func(w http.ResponseWriter, r *http.Request) {
+func wrapHandler(ctx context.Context, token string, recom src.MapRecommended, pkgs ...string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		githubProv := github.New(github.NewHTTPWrapper(token, 10))
@@ -78,7 +80,7 @@ func wrapHandler(token string, recom src.MapRecommended, pkgs ...string) func(w 
 		apps := make(chan i.IApp, 10)
 		go func() {
 			for _, pkg := range pkgs {
-				apiApp, err := app.New(i.Pkg(pkg), "master", provDetector, depDetector)
+				apiApp, err := app.New(ctx, i.Pkg(pkg), "master", provDetector, depDetector)
 				if err != nil {
 					log.Printf("cant create app %s, got err: %s\n", pkg, err)
 				}
@@ -87,7 +89,7 @@ func wrapHandler(token string, recom src.MapRecommended, pkgs ...string) func(w 
 			close(apps)
 		}()
 
-		htmlResult, err := html.AppsHTML(apps, provDetector, recom)
+		htmlResult, err := html.AppsHTML(ctx, apps, provDetector, recom)
 		// htmlResult, err := html.LibsHTML(apps, provDetector, mapRec)
 		if err != nil {
 			fmt.Fprintf(w, "Error: %s", err)

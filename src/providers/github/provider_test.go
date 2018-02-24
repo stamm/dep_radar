@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/stamm/dep_radar/interfaces/mocks"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/deps/glide"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,12 +56,12 @@ func TestGithubRepo_WithDep(t *testing.T) {
 	pkg := i.Pkg("github.com/Masterminds/glide")
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock").Return([]byte(`imports:
+	mHttpClient.On("Get", mock.Anything, "https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock").Return([]byte(`imports:
 - name: pkg1
   version: hash1`), nil)
 
 	prov := New(mHttpClient)
-	content, err := prov.File(pkg, "master", "glide.lock")
+	content, err := prov.File(context.Background(), pkg, "master", "glide.lock")
 	require.NoError(err)
 	require.True(len(content) > 0)
 
@@ -71,7 +73,7 @@ func TestGithubRepo_WithDep(t *testing.T) {
 	app.On("Package").Return(pkg)
 	app.On("Branch").Return("master")
 
-	appDeps, err := detector.Deps(app)
+	appDeps, err := detector.Deps(context.Background(), app)
 	require.NoError(err)
 	deps := appDeps.Deps
 	require.Len(deps, 1, "Expect 1 dependency")
@@ -93,7 +95,7 @@ func TestGithubTags_Ok(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`[
+	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`[
   {
     "name": "v0.1.0",
     "commit": {
@@ -110,7 +112,7 @@ func TestGithubTags_Ok(t *testing.T) {
 	pkg := i.Pkg("github.com/golang/dep")
 	tagsGetter := New(mHttpClient)
 
-	tags, err := tagsGetter.Tags(pkg)
+	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.NoError(err)
 	require.Len(tags, 2, "Expect 2 tags")
 	require.Equal("v0.1.0", tags[0].Version)
@@ -122,12 +124,12 @@ func TestGithubTags_Error(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return(nil, errors.New("error"))
+	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return(nil, errors.New("error"))
 
 	pkg := i.Pkg("github.com/golang/dep")
 	tagsGetter := New(mHttpClient)
 
-	tags, err := tagsGetter.Tags(pkg)
+	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.EqualError(err, "error")
 	require.Len(tags, 0, "Expect 0 tags")
 }
@@ -137,12 +139,12 @@ func TestGithubTags_BadFile(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`{`), nil)
+	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`{`), nil)
 
 	pkg := i.Pkg("github.com/golang/dep")
 	tagsGetter := New(mHttpClient)
 
-	tags, err := tagsGetter.Tags(pkg)
+	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.Error(err)
 	require.Len(tags, 0, "Expect 0 tags")
 }
@@ -154,12 +156,12 @@ func TestHTTPWrapper_WithoutToken_NoToken(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "tags").Return([]byte(`res`), nil)
+	mHttpClient.On("Get", mock.Anything, "tags").Return([]byte(`res`), nil)
 
 	client := &HTTPWrapper{
 		client: mHttpClient,
 	}
-	content, err := client.Get("tags")
+	content, err := client.Get(context.Background(), "tags")
 	require.NoError(err)
 	require.EqualValues("res", content)
 }
@@ -169,13 +171,13 @@ func TestHTTPWrapper_WithToken_AddToken(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "tags?access_token=a").Return([]byte(`res`), nil)
+	mHttpClient.On("Get", mock.Anything, "tags?access_token=a").Return([]byte(`res`), nil)
 
 	client := &HTTPWrapper{
 		token:  "a",
 		client: mHttpClient,
 	}
-	content, err := client.Get("tags")
+	content, err := client.Get(context.Background(), "tags")
 	require.NoError(err)
 	require.EqualValues("res", content)
 }
@@ -211,7 +213,7 @@ func TestHTTPWrapper_Get_WrongURL(t *testing.T) {
 	client := &HTTPWrapper{
 		token: "a",
 	}
-	content, err := client.Get("cache_object:foo")
+	content, err := client.Get(context.Background(), "cache_object:foo")
 	require.Error(err)
 	require.EqualValues("", content)
 }

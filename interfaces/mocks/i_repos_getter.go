@@ -1,5 +1,6 @@
 package mocks
 
+import context "context"
 import interfaces "github.com/stamm/dep_radar/interfaces"
 import mock "github.com/stretchr/testify/mock"
 
@@ -8,13 +9,13 @@ type IReposGetter struct {
 	mock.Mock
 }
 
-// Apps provides a mock function with given fields:
-func (_m *IReposGetter) Apps() ([]interfaces.Pkg, error) {
-	ret := _m.Called()
+// Apps provides a mock function with given fields: _a0
+func (_m *IReposGetter) Apps(_a0 context.Context) ([]interfaces.Pkg, error) {
+	ret := _m.Called(_a0)
 
 	var r0 []interfaces.Pkg
-	if rf, ok := ret.Get(0).(func() []interfaces.Pkg); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) []interfaces.Pkg); ok {
+		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]interfaces.Pkg)
@@ -22,8 +23,8 @@ func (_m *IReposGetter) Apps() ([]interfaces.Pkg, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	urlpkg "net/url"
@@ -48,12 +49,12 @@ func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 	}
 }
 
-func (c *HTTPWrapper) Get(url string) ([]byte, error) {
+func (c *HTTPWrapper) Get(ctx context.Context, url string) ([]byte, error) {
 	newURL, err := c.getURL(url)
 	if err != nil {
 		return []byte{}, err
 	}
-	return c.client.Get(newURL)
+	return c.client.Get(ctx, newURL)
 }
 
 func (c *HTTPWrapper) getURL(url string) (string, error) {
@@ -78,12 +79,12 @@ func New(client i.IWebClient) *Provider {
 	}
 }
 
-func (g Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
-	return g.tagsHttp(pkg)
+func (g Provider) Tags(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
+	return g.tagsHttp(ctx, pkg)
 }
 
-func (g Provider) File(pkg i.Pkg, branch, name string) ([]byte, error) {
-	return g.client.Get(g.makeURL(pkg, branch, name))
+func (g Provider) File(ctx context.Context, pkg i.Pkg, branch, name string) ([]byte, error) {
+	return g.client.Get(ctx, g.makeURL(pkg, branch, name))
 }
 
 func (g Provider) makeURL(pkg i.Pkg, branch, name string) string {
@@ -103,9 +104,9 @@ func (g Provider) GoGetUrl() string {
 	return Prefix
 }
 
-func (g Provider) tagsHttp(pkg i.Pkg) ([]i.Tag, error) {
+func (g Provider) tagsHttp(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
 	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags?per_page=100"
-	content, err := g.client.Get(url)
+	content, err := g.client.Get(ctx, url)
 	if err != nil {
 		return nil, err
 	}

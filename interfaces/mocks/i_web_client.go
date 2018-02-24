@@ -1,5 +1,6 @@
 package mocks
 
+import context "context"
 import interfaces "github.com/stamm/dep_radar/interfaces"
 import mock "github.com/stretchr/testify/mock"
 
@@ -8,13 +9,13 @@ type IWebClient struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: _a0
-func (_m *IWebClient) Get(_a0 string) ([]byte, error) {
-	ret := _m.Called(_a0)
+// Get provides a mock function with given fields: _a0, _a1
+func (_m *IWebClient) Get(_a0 context.Context, _a1 string) ([]byte, error) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(string) []byte); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -22,8 +23,8 @@ func (_m *IWebClient) Get(_a0 string) ([]byte, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,5 +1,6 @@
 package mocks
 
+import context "context"
 import interfaces "github.com/stamm/dep_radar/interfaces"
 import mock "github.com/stretchr/testify/mock"
 
@@ -22,20 +23,20 @@ func (_m *IApp) Branch() string {
 	return r0
 }
 
-// Deps provides a mock function with given fields:
-func (_m *IApp) Deps() (interfaces.AppDeps, error) {
-	ret := _m.Called()
+// Deps provides a mock function with given fields: _a0
+func (_m *IApp) Deps(_a0 context.Context) (interfaces.AppDeps, error) {
+	ret := _m.Called(_a0)
 
 	var r0 interfaces.AppDeps
-	if rf, ok := ret.Get(0).(func() interfaces.AppDeps); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) interfaces.AppDeps); ok {
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(interfaces.AppDeps)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}

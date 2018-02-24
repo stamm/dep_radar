@@ -1,11 +1,13 @@
 package deps
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/interfaces/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,12 +17,12 @@ func Test_Ok(t *testing.T) {
 
 	mApp := &mocks.IApp{}
 	mTool := &mocks.IDepTool{}
-	mTool.On("Deps", mApp).Return(mapDep(), nil)
+	mTool.On("Deps", mock.Anything, mApp).Return(mapDep(), nil)
 
 	detector := NewDetector()
 	detector.AddTool(mTool)
 
-	appDeps, err := detector.Deps(mApp)
+	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.NoError(err)
 	require.Equal(i.Manager(-1), appDeps.Manager)
 	deps := appDeps.Deps
@@ -36,12 +38,12 @@ func Test_Error(t *testing.T) {
 	mApp := &mocks.IApp{}
 
 	mTool := &mocks.IDepTool{}
-	mTool.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+	mTool.On("Deps", mock.Anything, mApp).Return(i.AppDeps{}, errors.New("error"))
 
 	detector := NewDetector()
 	detector.AddTool(mTool)
 
-	appDeps, err := detector.Deps(mApp)
+	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.EqualError(err, "error")
 	require.Len(appDeps.Deps, 0)
 }
@@ -53,16 +55,16 @@ func Test_FirstOk(t *testing.T) {
 	mApp := &mocks.IApp{}
 
 	mTool1 := &mocks.IDepTool{}
-	mTool1.On("Deps", mApp).Return(mapDep(), nil)
+	mTool1.On("Deps", mock.Anything, mApp).Return(mapDep(), nil)
 
 	mTool2 := &mocks.IDepTool{}
-	mTool2.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+	mTool2.On("Deps", mock.Anything, mApp).Return(i.AppDeps{}, errors.New("error"))
 
 	detector := NewDetector()
 	detector.AddTool(mTool1)
 	detector.AddTool(mTool2)
 
-	appDeps, err := detector.Deps(mApp)
+	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.NoError(err)
 	deps := appDeps.Deps
 	require.Len(deps, 1)
@@ -77,15 +79,15 @@ func Test_FirstBad(t *testing.T) {
 	mApp := &mocks.IApp{}
 
 	mTool1 := &mocks.IDepTool{}
-	mTool1.On("Deps", mApp).Return(i.AppDeps{}, errors.New("error"))
+	mTool1.On("Deps", mock.Anything, mApp).Return(i.AppDeps{}, errors.New("error"))
 	mTool2 := &mocks.IDepTool{}
-	mTool2.On("Deps", mApp).Return(mapDep(), nil)
+	mTool2.On("Deps", mock.Anything, mApp).Return(mapDep(), nil)
 
 	detector := NewDetector()
 	detector.AddTool(mTool1)
 	detector.AddTool(mTool2)
 
-	appDeps, err := detector.Deps(mApp)
+	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.NoError(err)
 	deps := appDeps.Deps
 	require.Len(deps, 1)
@@ -100,7 +102,7 @@ func Test_No(t *testing.T) {
 	mApp := &mocks.IApp{}
 	detector := NewDetector()
 
-	appDeps, err := detector.Deps(mApp)
+	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.EqualError(err, "Bad")
 	require.Len(appDeps.Deps, 0)
 }

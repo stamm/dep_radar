@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stamm/dep_radar/interfaces/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +17,7 @@ func TestGithubRepos_Ok(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/orgs/dep-radar/repos").Return([]byte(`[
+	mHttpClient.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(`[
   {
     "full_name": "dep-radar/test_app"
   },
@@ -38,7 +39,7 @@ func TestGithubRepos_Error(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://api.github.com/orgs/dep-radar/repos").Return([]byte(``), errors.New("aaa"))
+	mHttpClient.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(``), errors.New("aaa"))
 	tagsGetter := New(mHttpClient)
 
 	pkgs, err := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")

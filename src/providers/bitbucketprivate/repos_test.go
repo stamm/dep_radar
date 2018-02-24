@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stamm/dep_radar/interfaces/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +17,7 @@ func TestBBRepos_Ok(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return([]byte(`{
+	mHttpClient.On("Get", mock.Anything, "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return([]byte(`{
 	"isLastPage": true,
 	"values": [
 	{
@@ -41,14 +42,14 @@ func TestBBRepos_TwoPages(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return([]byte(`{
+	mHttpClient.On("Get", mock.Anything, "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return([]byte(`{
 	"isLastPage": false,
 	"values": [
 	{ "slug": "test" }
 	],
 	"nextPageStart": 1
 }`), nil)
-	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=1").Return([]byte(`{
+	mHttpClient.On("Get", mock.Anything, "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=1").Return([]byte(`{
 	"isLastPage": true,
 	"values": [
 	{ "slug": "test2" }
@@ -68,7 +69,7 @@ func TestGithubRepos_Error(t *testing.T) {
 	require := require.New(t)
 
 	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return(nil, errors.New("error"))
+	mHttpClient.On("Get", mock.Anything, "https://bitbucket.example.com/rest/api/1.0/projects/proj/repos?start=0").Return(nil, errors.New("error"))
 
 	provider := New(mHttpClient, "bitbucket.example.com", "godep.example.com", "https://bitbucket.example.com")
 

@@ -44,7 +44,7 @@ func (p *Provider) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, er
 func (p *Provider) getRepos(ctx context.Context, project string, start int) (reposResponse, error) {
 	var repos reposResponse
 	url := p.getReposURL(p.gitDomain, project, start)
-	reposResponse, err := p.httpClient.Get(url)
+	reposResponse, err := p.httpClient.Get(ctx, url)
 	if err != nil {
 		return repos, err
 	}

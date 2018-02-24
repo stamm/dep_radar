@@ -1,5 +1,6 @@
 package mocks
 
+import context "context"
 import interfaces "github.com/stamm/dep_radar/interfaces"
 import mock "github.com/stretchr/testify/mock"
 
@@ -8,20 +9,20 @@ type IDepTool struct {
 	mock.Mock
 }
 
-// Deps provides a mock function with given fields: _a0
-func (_m *IDepTool) Deps(_a0 interfaces.IApp) (interfaces.AppDeps, error) {
-	ret := _m.Called(_a0)
+// Deps provides a mock function with given fields: _a0, _a1
+func (_m *IDepTool) Deps(_a0 context.Context, _a1 interfaces.IApp) (interfaces.AppDeps, error) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 interfaces.AppDeps
-	if rf, ok := ret.Get(0).(func(interfaces.IApp) interfaces.AppDeps); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, interfaces.IApp) interfaces.AppDeps); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Get(0).(interfaces.AppDeps)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(interfaces.IApp) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(context.Context, interfaces.IApp) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}

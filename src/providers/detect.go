@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"errors"
 	"os"
 	"strings"
@@ -15,8 +16,8 @@ const (
 
 var (
 	// ErrNoProvider says that no provider was found
-	ErrNoProvider             = errors.New("No provider")
-	_             i.IDetector = &Detector{}
+	ErrNoProvider                     = errors.New("No provider")
+	_             i.IProviderDetector = &Detector{}
 )
 
 // Detector for provider
@@ -36,7 +37,7 @@ func (d *Detector) AddProvider(prov i.IProvider) *Detector {
 }
 
 // Detect right provider
-func (d *Detector) Detect(pkg i.Pkg) (i.IProvider, error) {
+func (d *Detector) Detect(ctx context.Context, pkg i.Pkg) (i.IProvider, error) {
 	url := string(pkg)
 	for _, prov := range d.Providers {
 		if strings.HasPrefix(url, prov.GoGetUrl()) {

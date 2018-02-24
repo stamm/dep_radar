@@ -1,6 +1,7 @@
 package glide
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Masterminds/glide/cfg"
@@ -18,11 +19,11 @@ func (t *Tool) Name() string {
 	return "glide"
 }
 
-func (t *Tool) Deps(a i.IApp) (i.AppDeps, error) {
+func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
 	res := i.AppDeps{
 		Manager: i.GlideManager,
 	}
-	content, err := a.Provider().File(a.Package(), a.Branch(), path.LockFile)
+	content, err := a.Provider().File(ctx, a.Package(), a.Branch(), path.LockFile)
 	if err != nil {
 		return res, err
 	}

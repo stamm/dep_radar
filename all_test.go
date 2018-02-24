@@ -28,7 +28,6 @@ func TestAllFlow(t *testing.T) {
 	require.Equal(i.Pkg("app1"), apps[0])
 
 	mapDeps := i.AppDeps{
-		Manager: i.Manager(-1),
 		Deps: map[i.Pkg]i.Dep{
 			"test": {
 				Package: "test",

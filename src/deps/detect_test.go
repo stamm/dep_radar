@@ -24,7 +24,6 @@ func Test_Ok(t *testing.T) {
 
 	appDeps, err := detector.Deps(context.Background(), mApp)
 	require.NoError(err)
-	require.Equal(i.Manager(-1), appDeps.Manager)
 	deps := appDeps.Deps
 	require.Len(deps, 1)
 	require.Equal(i.Pkg("test"), deps["test"].Package)
@@ -120,7 +119,6 @@ func Test_DefaultDetector(t *testing.T) {
 
 func mapDep() i.AppDeps {
 	return i.AppDeps{
-		Manager: i.Manager(-1),
 		Deps: map[i.Pkg]i.Dep{
 			"test": {
 				Package: "test",

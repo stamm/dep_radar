@@ -55,12 +55,12 @@ func TestGithubRepo_WithDep(t *testing.T) {
 
 	pkg := i.Pkg("github.com/Masterminds/glide")
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock").Return([]byte(`imports:
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://raw.githubusercontent.com/Masterminds/glide/master/glide.lock").Return([]byte(`imports:
 - name: pkg1
   version: hash1`), nil)
 
-	prov := New(mHttpClient)
+	prov := New(client)
 	content, err := prov.File(context.Background(), pkg, "master", "glide.lock")
 	require.NoError(err)
 	require.True(len(content) > 0)
@@ -81,11 +81,11 @@ func TestGithubRepo_WithDep(t *testing.T) {
 	require.Equal(i.Hash("hash1"), deps["pkg1"].Hash)
 }
 
-func TestGithubRepo_CheckGoGetUrl(t *testing.T) {
+func TestGithubRepo_CheckGoGetURL(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	require.Equal("github.com", New(&mocks.IWebClient{}).GoGetUrl())
+	require.Equal("github.com", New(&mocks.IWebClient{}).GoGetURL())
 }
 
 // Tags
@@ -94,8 +94,8 @@ func TestGithubTags_Ok(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`[
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`[
   {
     "name": "v0.1.0",
     "commit": {
@@ -110,7 +110,7 @@ func TestGithubTags_Ok(t *testing.T) {
   }
 ]`), nil)
 	pkg := i.Pkg("github.com/golang/dep")
-	tagsGetter := New(mHttpClient)
+	tagsGetter := New(client)
 
 	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.NoError(err)
@@ -123,11 +123,11 @@ func TestGithubTags_Error(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return(nil, errors.New("error"))
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return(nil, errors.New("error"))
 
 	pkg := i.Pkg("github.com/golang/dep")
-	tagsGetter := New(mHttpClient)
+	tagsGetter := New(client)
 
 	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.EqualError(err, "error")
@@ -138,11 +138,11 @@ func TestGithubTags_BadFile(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`{`), nil)
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://api.github.com/repos/golang/dep/tags?per_page=100").Return([]byte(`{`), nil)
 
 	pkg := i.Pkg("github.com/golang/dep")
-	tagsGetter := New(mHttpClient)
+	tagsGetter := New(client)
 
 	tags, err := tagsGetter.Tags(context.Background(), pkg)
 	require.Error(err)
@@ -155,11 +155,11 @@ func TestHTTPWrapper_WithoutToken_NoToken(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "tags").Return([]byte(`res`), nil)
+	mClient := &mocks.IWebClient{}
+	mClient.On("Get", mock.Anything, "tags").Return([]byte(`res`), nil)
 
 	client := &HTTPWrapper{
-		client: mHttpClient,
+		client: mClient,
 	}
 	content, err := client.Get(context.Background(), "tags")
 	require.NoError(err)
@@ -170,12 +170,12 @@ func TestHTTPWrapper_WithToken_AddToken(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "tags?access_token=a").Return([]byte(`res`), nil)
+	mClient := &mocks.IWebClient{}
+	mClient.On("Get", mock.Anything, "tags?access_token=a").Return([]byte(`res`), nil)
 
 	client := &HTTPWrapper{
 		token:  "a",
-		client: mHttpClient,
+		client: mClient,
 	}
 	content, err := client.Get(context.Background(), "tags")
 	require.NoError(err)

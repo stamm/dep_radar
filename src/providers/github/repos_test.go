@@ -16,8 +16,8 @@ func TestGithubRepos_Ok(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(`[
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(`[
   {
     "full_name": "dep-radar/test_app"
   },
@@ -25,7 +25,7 @@ func TestGithubRepos_Ok(t *testing.T) {
     "full_name": "dep-radar/test_app2"
   }
 ]`), nil)
-	tagsGetter := New(mHttpClient)
+	tagsGetter := New(client)
 
 	pkgs, err := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
 	require.NoError(err)
@@ -38,9 +38,9 @@ func TestGithubRepos_Error(t *testing.T) {
 	t.Parallel()
 	require := require.New(t)
 
-	mHttpClient := &mocks.IWebClient{}
-	mHttpClient.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(``), errors.New("aaa"))
-	tagsGetter := New(mHttpClient)
+	client := &mocks.IWebClient{}
+	client.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(``), errors.New("aaa"))
+	tagsGetter := New(client)
 
 	pkgs, err := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
 	require.Error(err)

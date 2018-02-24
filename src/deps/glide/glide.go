@@ -13,16 +13,22 @@ var (
 	_ i.IDepTool = &Tool{}
 )
 
+// Tool glide
 type Tool struct{}
 
+// New creates new instance of tool
+func New() *Tool {
+	return &Tool{}
+}
+
+// Name gets the name for glide
 func (t *Tool) Name() string {
 	return "glide"
 }
 
+// Deps returns deps
 func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
-	res := i.AppDeps{
-		Manager: i.GlideManager,
-	}
+	res := i.AppDeps{}
 	content, err := a.Provider().File(ctx, a.Package(), a.Branch(), path.LockFile)
 	if err != nil {
 		return res, err
@@ -47,8 +53,4 @@ func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
 	}
 	// fmt.Printf("deps = %+v\n", deps)
 	return res, nil
-}
-
-func New() *Tool {
-	return &Tool{}
 }

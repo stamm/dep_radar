@@ -32,8 +32,8 @@ func (_m *IProvider) File(ctx context.Context, pkg interfaces.Pkg, branch string
 	return r0, r1
 }
 
-// GoGetUrl provides a mock function with given fields:
-func (_m *IProvider) GoGetUrl() string {
+// GoGetURL provides a mock function with given fields:
+func (_m *IProvider) GoGetURL() string {
 	ret := _m.Called()
 
 	var r0 string

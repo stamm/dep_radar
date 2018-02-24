@@ -22,7 +22,6 @@ func TestDep(t *testing.T) {
 
 	appDeps, err := New().Deps(context.Background(), appMock(content, nil))
 	require.NoError(err)
-	require.Equal(i.DepManager, appDeps.Manager)
 	deps := appDeps.Deps
 	require.Len(deps, 1, "Expect 1 dependency")
 	require.Equal(i.Pkg("pkg1"), deps["pkg1"].Package)

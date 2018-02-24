@@ -21,7 +21,6 @@ func TestGlide(t *testing.T) {
 
 	appDeps, err := New().Deps(context.Background(), appMock(content, nil))
 	require.Nil(err)
-	require.Equal(appDeps.Manager, i.GlideManager)
 	deps := appDeps.Deps
 	require.Len(deps, 1, "Expect 1 dependency")
 	require.Equal(i.Pkg("pkg1"), deps["pkg1"].Package)

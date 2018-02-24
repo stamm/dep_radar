@@ -1,13 +1,13 @@
 package goimport
 
+// Below is almost copy-paste from src/cmd/go/internal/get/discovery.go
+
 import (
 	"encoding/xml"
 	"fmt"
 	"io"
 	"strings"
 )
-
-// Below is copy-paste from src/cmd/go/internal/get/discovery.go
 
 // charsetReader returns a reader for the given charset. Currently
 // it only supports UTF-8 and ASCII. Otherwise, it returns a meaningful
@@ -24,7 +24,7 @@ func charsetReader(charset string, input io.Reader) (io.Reader, error) {
 	}
 }
 
-func parseMetaGoImports(r io.Reader) (imports []metaImport, err error) {
+func parseMetaGoImports(r io.Reader) (imports []MetaImport, err error) {
 	d := xml.NewDecoder(r)
 	d.CharsetReader = charsetReader
 	d.Strict = false
@@ -51,7 +51,7 @@ func parseMetaGoImports(r io.Reader) (imports []metaImport, err error) {
 			continue
 		}
 		if f := strings.Fields(attrValue(e.Attr, "content")); len(f) == 3 {
-			imports = append(imports, metaImport{
+			imports = append(imports, MetaImport{
 				Prefix:   f[0],
 				VCS:      f[1],
 				RepoRoot: f[2],

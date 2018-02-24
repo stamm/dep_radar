@@ -1,4 +1,6 @@
 # SHELL := /bin/sh
+LAST_GOPATH_DIR:=$(lastword $(subst :, ,$(GOPATH)))
+GOBIN:=$(LAST_GOPATH_DIR)/bin
 TEST_ARGS?=
 MIN_GO_VERSION:=1.9
 DEP_VERSION=v0.4.1
@@ -14,6 +16,7 @@ APP?=dep_radar
 CONTAINER_IMAGE?=docker.io/stamm/${APP}
 APP_BIN=$(GOPATH)/bin/$(APP)
 
+GOMETALINTER_BIN:=$(GOBIN)/gometalinter.v2
 
 
 # GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')
@@ -115,3 +118,15 @@ coverage: $(TMP_DIR) vendor/touch
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
 
+
+
+### LINTERS
+## install gometalinter
+$(GOMETALINTER_BIN):
+	go get -u gopkg.in/alecthomas/gometalinter.v2
+
+$(GOLINT_BIN):
+	go get -u golang.org/x/lint/golint
+
+lint: $(GOLINT_BIN) $(GOMETALINTER_BIN) | $(TEST_TMP_DIR)
+	$(GOMETALINTER_BIN) --no-config --disable-all --enable=golint --deadline=5m -e "src/html/templates/bindata.go" ./...

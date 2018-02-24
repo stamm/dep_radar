@@ -9,12 +9,14 @@ import (
 	"github.com/stamm/dep_radar/src/providers"
 )
 
+// Lib struct for lib
 type Lib struct {
 	Dep    i.Dep
 	Pkg    i.Pkg
 	AppPkg i.Pkg
 }
 
+// GetTags return list of apps with dependencies and libraries with tags
 func GetTags(ctx context.Context, apps <-chan i.IApp, detector *providers.Detector) (i.AppListWithDeps, i.LibMapWithTags) {
 	var (
 		muRes sync.RWMutex
@@ -98,6 +100,7 @@ func getTagsForLib(ctx context.Context, pkg i.Pkg, detector *providers.Detector)
 	return tagList, nil
 }
 
+// AddVersionLibToApp set version of libs inside each app
 func AddVersionLibToApp(apps i.AppListWithDeps, libs i.LibMapWithTags) i.AppListWithDeps {
 	for appPkg, appLibs := range apps {
 		for libPkg, appLib := range appLibs {

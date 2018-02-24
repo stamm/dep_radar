@@ -10,6 +10,7 @@ import (
 	"github.com/stamm/dep_radar/src/goimport"
 )
 
+// GetProject get all projects from bitbucket
 func GetProject(ctx context.Context, client i.IWebClient, pkg i.Pkg, prefix string) (string, error) {
 	prefix = strings.Trim(prefix, "/")
 	prefix = regexp.QuoteMeta(prefix)

@@ -32,16 +32,19 @@ type commit struct {
 	SHA string `json:"sha"`
 }
 
+// Provider for github
 type Provider struct {
 	token  string
 	client i.IWebClient
 }
 
+// HTTPWrapper for github
 type HTTPWrapper struct {
 	token  string
 	client i.IWebClient
 }
 
+// NewHTTPWrapper returns http wrapper
 func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 	return &HTTPWrapper{
 		token:  token,
@@ -49,6 +52,7 @@ func NewHTTPWrapper(token string, limit int) *HTTPWrapper {
 	}
 }
 
+// Get returns response for get url
 func (c *HTTPWrapper) Get(ctx context.Context, url string) ([]byte, error) {
 	newURL, err := c.getURL(url)
 	if err != nil {
@@ -73,16 +77,19 @@ func (c *HTTPWrapper) getURL(url string) (string, error) {
 	return url, nil
 }
 
+// New creates new instance of provider
 func New(client i.IWebClient) *Provider {
 	return &Provider{
 		client: client,
 	}
 }
 
+// Tags get tags from github
 func (g Provider) Tags(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
-	return g.tagsHttp(ctx, pkg)
+	return g.tagsFromGithub(ctx, pkg)
 }
 
+// File gets file from github
 func (g Provider) File(ctx context.Context, pkg i.Pkg, branch, name string) ([]byte, error) {
 	return g.client.Get(ctx, g.makeURL(pkg, branch, name))
 }
@@ -100,11 +107,12 @@ func (g Provider) makeURL(pkg i.Pkg, branch, name string) string {
 	return "https://raw.githubusercontent.com/" + url
 }
 
-func (g Provider) GoGetUrl() string {
+// GoGetURL gets url for go get
+func (g Provider) GoGetURL() string {
 	return Prefix
 }
 
-func (g Provider) tagsHttp(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
+func (g Provider) tagsFromGithub(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
 	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags?per_page=100"
 	content, err := g.client.Get(ctx, url)
 	if err != nil {

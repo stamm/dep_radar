@@ -33,7 +33,7 @@ func (p *Provider) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, er
 			return resultRepos, err
 		}
 		for _, repo := range repos.Values {
-			resultRepos = append(resultRepos, i.Pkg(p.goGetUrl+"/"+repo.Slug))
+			resultRepos = append(resultRepos, i.Pkg(p.goGetURL+"/"+repo.Slug))
 		}
 		isLastPage = repos.IsLastPage
 		start = repos.NextPageStart

@@ -40,7 +40,7 @@ func (d *Detector) AddProvider(prov i.IProvider) *Detector {
 func (d *Detector) Detect(ctx context.Context, pkg i.Pkg) (i.IProvider, error) {
 	url := string(pkg)
 	for _, prov := range d.Providers {
-		if strings.HasPrefix(url, prov.GoGetUrl()) {
+		if strings.HasPrefix(url, prov.GoGetURL()) {
 			return prov, nil
 		}
 	}

@@ -12,6 +12,7 @@ jobs:
     - go get github.com/mattn/goveralls
     script:
     - make coverage
+    - make lint
     after_success:
     - "./cc-test-reporter format-coverage -d -t gocov ./tmp/coverage.txt"
     - "./cc-test-reporter sum-coverage -d coverage/codeclimate.json"

@@ -17,6 +17,7 @@ var (
 	_ i.IDepTool = &Tool{}
 )
 
+// Tool dep
 type Tool struct{}
 
 type rawLock struct {
@@ -32,14 +33,19 @@ type rawLockedProject struct {
 	Packages []string `toml:"packages"`
 }
 
+// New creates new instance of tool
+func New() *Tool {
+	return &Tool{}
+}
+
+// Name gets the name for dep
 func (t *Tool) Name() string {
 	return "dep"
 }
 
+// Deps returns deps
 func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
-	res := i.AppDeps{
-		Manager: i.DepManager,
-	}
+	res := i.AppDeps{}
 	content, err := a.Provider().File(ctx, a.Package(), a.Branch(), file)
 	if err != nil {
 		return res, err
@@ -65,8 +71,4 @@ func (t *Tool) Deps(ctx context.Context, a i.IApp) (i.AppDeps, error) {
 	}
 	// fmt.Printf("deps = %+v\n", deps)
 	return res, nil
-}
-
-func New() *Tool {
-	return &Tool{}
 }

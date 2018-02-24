@@ -10,7 +10,7 @@ jobs:
     - chmod +x ./cc-test-reporter
     - "./cc-test-reporter before-build -d"
     - go get github.com/mattn/goveralls
-    - export PATH="${GOPATH}/bin:$PATH"
+    - export PATH="$GOPATH/bin:$PATH"
     script:
     - make coverage
     - make lint

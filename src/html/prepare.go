@@ -1,12 +1,13 @@
 package html
 
 import (
+	"context"
 	"sort"
 	"strings"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/fill"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 	versionpkg "github.com/stamm/dep_radar/src/version"
 )
@@ -41,8 +42,8 @@ type appLibView struct {
 }
 
 // AppsHTML return html with table. In the head apps, on the left side - libs
-func prepare(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) templateStruct {
-	appsMap, libsMap := fill.GetTags(apps, detector)
+func prepare(ctx context.Context, apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) templateStruct {
+	appsMap, libsMap := fill.GetTags(ctx, apps, detector)
 	appsMap = fill.AddVersionLibToApp(appsMap, libsMap)
 
 	// Sort libraries

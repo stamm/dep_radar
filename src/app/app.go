@@ -1,11 +1,14 @@
 package app
 
 import (
-	i "github.com/stamm/dep_radar/interfaces"
+	"context"
+
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var _ i.IApp = &App{}
 
+// App struct for an app
 type App struct {
 	pkg         i.Pkg
 	branch      string
@@ -14,24 +17,29 @@ type App struct {
 	depDetector i.IDepDetector
 }
 
+// Package returns package name
 func (a *App) Package() i.Pkg {
 	return a.pkg
 }
 
+// Provider returns provider for the app
 func (a *App) Provider() i.IProvider {
 	return a.provider
 }
 
-func (a *App) Deps() (i.AppDeps, error) {
-	return a.depDetector.Deps(a)
+// Deps returns deps
+func (a *App) Deps(ctx context.Context) (i.AppDeps, error) {
+	return a.depDetector.Deps(ctx, a)
 }
 
+// Branch returns branch
 func (a *App) Branch() string {
 	return a.branch
 }
 
-func New(pkg i.Pkg, branch string, detector i.IDetector, depDetector i.IDepDetector) (*App, error) {
-	provider, err := detector.Detect(pkg)
+// New creates app
+func New(ctx context.Context, pkg i.Pkg, branch string, detector i.IProviderDetector, depDetector i.IDepDetector) (*App, error) {
+	provider, err := detector.Detect(ctx, pkg)
 	if err != nil {
 		return nil, err
 	}

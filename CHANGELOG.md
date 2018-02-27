@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0] - 2018-02-27
+### Added
+- More tests
+### Changed
+- Huge refactoring: add context to all function working with network
+### Fixed
+- Linter's warnings
+### Removed
+- Unused code
+
+
 ## [1.1.4] - 2018-02-23
 ### Changed
 - Fix release docker image

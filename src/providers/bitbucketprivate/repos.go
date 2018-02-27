@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 type reposResponse struct {
@@ -33,7 +33,7 @@ func (p *Provider) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, er
 			return resultRepos, err
 		}
 		for _, repo := range repos.Values {
-			resultRepos = append(resultRepos, i.Pkg(p.goGetUrl+"/"+repo.Slug))
+			resultRepos = append(resultRepos, i.Pkg(p.goGetURL+"/"+repo.Slug))
 		}
 		isLastPage = repos.IsLastPage
 		start = repos.NextPageStart
@@ -44,7 +44,7 @@ func (p *Provider) GetAllRepos(ctx context.Context, project string) ([]i.Pkg, er
 func (p *Provider) getRepos(ctx context.Context, project string, start int) (reposResponse, error) {
 	var repos reposResponse
 	url := p.getReposURL(p.gitDomain, project, start)
-	reposResponse, err := p.httpClient.Get(url)
+	reposResponse, err := p.httpClient.Get(ctx, url)
 	if err != nil {
 		return repos, err
 	}

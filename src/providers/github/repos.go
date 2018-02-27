@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 type reposResponse struct {
@@ -13,7 +13,7 @@ type reposResponse struct {
 }
 
 // GetAllOrgRepos get repos
-func (g *Github) GetAllOrgRepos(ctx context.Context, org string) ([]i.Pkg, error) {
+func (g *Provider) GetAllOrgRepos(ctx context.Context, org string) ([]i.Pkg, error) {
 	var (
 		resultRepos []i.Pkg
 	)
@@ -28,10 +28,10 @@ func (g *Github) GetAllOrgRepos(ctx context.Context, org string) ([]i.Pkg, error
 	return resultRepos, nil
 }
 
-func (g *Github) getRepos(ctx context.Context, org string) ([]reposResponse, error) {
+func (g *Provider) getRepos(ctx context.Context, org string) ([]reposResponse, error) {
 	var repos []reposResponse
 	url := g.getOrgReposURL(org)
-	reposResponse, err := g.client.Get(url)
+	reposResponse, err := g.client.Get(ctx, url)
 	if err != nil {
 		return repos, err
 	}
@@ -40,6 +40,6 @@ func (g *Github) getRepos(ctx context.Context, org string) ([]reposResponse, err
 	return repos, err
 }
 
-func (g *Github) getOrgReposURL(org string) string {
+func (g *Provider) getOrgReposURL(org string) string {
 	return fmt.Sprintf("https://api.github.com/orgs/%s/repos", org)
 }

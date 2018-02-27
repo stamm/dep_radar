@@ -1,11 +1,13 @@
-package depstatus
+package src_test
 
 import (
+	"context"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
-	"github.com/stamm/dep_radar/interfaces/mocks"
 	"github.com/stamm/dep_radar/src/deps"
+	i "github.com/stamm/dep_radar/src/interfaces"
+	"github.com/stamm/dep_radar/src/interfaces/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,17 +18,16 @@ func TestAllFlow(t *testing.T) {
 	mApp.On("Package").Return(i.Pkg("app1"))
 
 	getRepos := &mocks.IReposGetter{}
-	getRepos.On("Apps").Return([]i.Pkg{
+	getRepos.On("Apps", mock.Anything).Return([]i.Pkg{
 		"app1",
 	}, nil)
 
-	apps, err := getRepos.Apps()
+	apps, err := getRepos.Apps(context.Background())
 	require.NoError(err)
 	require.Len(apps, 1)
 	require.Equal(i.Pkg("app1"), apps[0])
 
 	mapDeps := i.AppDeps{
-		Manager: i.Manager(-1),
 		Deps: map[i.Pkg]i.Dep{
 			"test": {
 				Package: "test",
@@ -35,12 +36,12 @@ func TestAllFlow(t *testing.T) {
 		},
 	}
 	mTool := &mocks.IDepTool{}
-	mTool.On("Deps", mApp).Return(mapDeps, nil)
+	mTool.On("Deps", mock.Anything, mApp).Return(mapDeps, nil)
 
 	depDetector := deps.NewDetector()
 	depDetector.AddTool(mTool)
 
-	appDeps, err := depDetector.Deps(mApp)
+	appDeps, err := depDetector.Deps(context.Background(), mApp)
 	require.Nil(err)
 	dependens := appDeps.Deps
 	require.Len(dependens, 1)

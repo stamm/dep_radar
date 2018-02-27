@@ -1,20 +1,22 @@
 package bitbucketprivate
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/goimport"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
-func GetProject(client i.IWebClient, pkg i.Pkg, prefix string) (string, error) {
+// GetProject get all projects from bitbucket
+func GetProject(ctx context.Context, client i.IWebClient, pkg i.Pkg, prefix string) (string, error) {
 	prefix = strings.Trim(prefix, "/")
 	prefix = regexp.QuoteMeta(prefix)
 	re := regexp.MustCompile(prefix + `/([^/]+)`)
 	url := string(pkg)
-	sources, err := goimport.GetImports(client, url)
+	sources, err := goimport.GetImports(ctx, client, url)
 	if err != nil {
 		return "", err
 	}

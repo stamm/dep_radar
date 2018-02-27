@@ -2,17 +2,18 @@ package html
 
 import (
 	"bytes"
+	"context"
 	"html/template"
 	"io/ioutil"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/html/templates"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 )
 
 // AppsHTML return html with table. In the head apps, on the left side - libs
-func AppsHTML(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) ([]byte, error) {
+func AppsHTML(ctx context.Context, apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecommended) ([]byte, error) {
 	var buf bytes.Buffer
 	raw, err := templates.Asset("src/html/templates/apps.html")
 	if err != nil {
@@ -22,7 +23,7 @@ func AppsHTML(apps <-chan i.IApp, detector *providers.Detector, rec src.MapRecom
 	if err != nil {
 		return buf.Bytes(), err
 	}
-	data := prepare(apps, detector, rec)
+	data := prepare(ctx, apps, detector, rec)
 	err = tmpl.Execute(&buf, data)
 	if err != nil {
 		return buf.Bytes(), err

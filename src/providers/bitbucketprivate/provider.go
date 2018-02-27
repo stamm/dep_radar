@@ -1,12 +1,13 @@
 package bitbucketprivate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var (
@@ -47,47 +48,52 @@ type FileOpts struct {
 	BranchName string
 }
 
+// Provider for bitbucket
 type Provider struct {
 	project    string
 	httpClient i.IWebClient
 	gitDomain  string
-	goGetUrl   string
-	apiUrl     string
+	goGetURL   string
+	apiURL     string
 	muMap      sync.RWMutex
 	mapProject map[i.Pkg]string
 }
 
+// Options for bitbucket
 type Options struct {
 	URL      string
 	User     string
 	Password string
 }
 
-func New(httpClient i.IWebClient, gitDomain, goGetUrl, apiUrl string) *Provider {
+// New creates new instance of provider
+func New(httpClient i.IWebClient, gitDomain, goGetURL, apiURL string) *Provider {
 	return &Provider{
 		httpClient: httpClient,
-		goGetUrl:   goGetUrl,
+		goGetURL:   goGetURL,
 		gitDomain:  gitDomain,
-		apiUrl:     apiUrl,
+		apiURL:     apiURL,
 		mapProject: make(map[i.Pkg]string),
 	}
 }
 
-func (p *Provider) File(pkg i.Pkg, branch, name string) ([]byte, error) {
-	project, err := p.getProject(pkg)
+// File gets file
+func (p *Provider) File(ctx context.Context, pkg i.Pkg, branch, name string) ([]byte, error) {
+	project, err := p.getProject(ctx, pkg)
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s?at=refs%%2Fheads%%2F%s", p.apiUrl, project, p.repoName(pkg), name, branch)
-	return p.httpClient.Get(url)
+	url := fmt.Sprintf("%s/projects/%s/repos/%s/raw/%s?at=refs%%2Fheads%%2F%s", p.apiURL, project, p.repoName(pkg), name, branch)
+	return p.httpClient.Get(ctx, url)
 }
 
-func (p *Provider) GoGetUrl() string {
-	return p.goGetUrl
+// GoGetURL gets url for go get
+func (p *Provider) GoGetURL() string {
+	return p.goGetURL
 }
 
 // todo cache result in map
-func (p *Provider) getProject(pkg i.Pkg) (string, error) {
+func (p *Provider) getProject(ctx context.Context, pkg i.Pkg) (string, error) {
 	p.muMap.RLock()
 	if project, ok := p.mapProject[pkg]; ok {
 		p.muMap.RUnlock()
@@ -97,7 +103,7 @@ func (p *Provider) getProject(pkg i.Pkg) (string, error) {
 	// if p.project != "" {
 	// 	return nil
 	// }
-	project, err := GetProject(p.httpClient, pkg, p.gitDomain)
+	project, err := GetProject(ctx, p.httpClient, pkg, p.gitDomain)
 	if err != nil {
 		return "", err
 	}
@@ -110,8 +116,8 @@ func (p *Provider) getProject(pkg i.Pkg) (string, error) {
 }
 
 // Tags get tags from bitbucket
-func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
-	project, err := p.getProject(pkg)
+func (p *Provider) Tags(ctx context.Context, pkg i.Pkg) ([]i.Tag, error) {
+	project, err := p.getProject(ctx, pkg)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +127,7 @@ func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
 		isLastPage bool
 	)
 	for !isLastPage {
-		tags, err := p.tags(pkg, project, start)
+		tags, err := p.tags(ctx, pkg, project, start)
 		if err != nil {
 			return tagsResult, fmt.Errorf("Error on getting tags: %s", err)
 		}
@@ -135,10 +141,10 @@ func (p *Provider) Tags(pkg i.Pkg) ([]i.Tag, error) {
 	return tagsResult, nil
 }
 
-func (p *Provider) tags(pkg i.Pkg, project string, start int) (TagsResponse, error) {
+func (p *Provider) tags(ctx context.Context, pkg i.Pkg, project string, start int) (TagsResponse, error) {
 	var tags TagsResponse
-	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", p.apiUrl, project, p.repoName(pkg), start)
-	reposResponse, err := p.httpClient.Get(url)
+	url := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/tags?start=%d", p.apiURL, project, p.repoName(pkg), start)
+	reposResponse, err := p.httpClient.Get(ctx, url)
 	if err != nil {
 		return tags, err
 	}

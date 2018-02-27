@@ -1,13 +1,14 @@
-package depstatus
+package src_test
 
 import (
+	"context"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/deps/dep"
 	"github.com/stamm/dep_radar/src/deps/glide"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 	"github.com/stamm/dep_radar/src/providers/github"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func TestIntegration_Github(t *testing.T) {
 		AddTool(glide.New())
 
 	appPkg := i.Pkg("github.com/dep-radar/test_app")
-	app, err := app.New(appPkg, "master", provDetector, depDetector)
+	app, err := app.New(context.Background(), appPkg, "master", provDetector, depDetector)
 	require.NoError(err)
 
 	// libs := make(map[i.Pkg]i.Dep)
@@ -48,7 +49,7 @@ func TestIntegration_Github(t *testing.T) {
 	// 	lig.Tags()
 	// }
 
-	appDeps, err := app.Deps()
+	appDeps, err := app.Deps(context.Background())
 	require.NoError(err)
 	require.Len(appDeps.Deps, 5)
 	require.Contains(appDeps.Deps, i.Pkg("github.com/pkg/errors"))

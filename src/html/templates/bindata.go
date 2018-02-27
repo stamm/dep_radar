@@ -84,7 +84,7 @@ func srcHtmlTemplatesAppsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "src/html/templates/apps.html", size: 1608, mode: os.FileMode(420), modTime: time.Unix(1518699344, 0)}
+	info := bindataFileInfo{name: "src/html/templates/apps.html", size: 1608, mode: os.FileMode(420), modTime: time.Unix(1518779199, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -104,7 +104,7 @@ func srcHtmlTemplatesLibsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "src/html/templates/libs.html", size: 1605, mode: os.FileMode(420), modTime: time.Unix(1518442846, 0)}
+	info := bindataFileInfo{name: "src/html/templates/libs.html", size: 1605, mode: os.FileMode(420), modTime: time.Unix(1518779199, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

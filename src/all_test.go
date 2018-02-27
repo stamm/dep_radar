@@ -1,4 +1,4 @@
-package depstatus
+package src_test
 
 import (
 	"context"

@@ -6,14 +6,37 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"time"
 
-	"github.com/stamm/dep_radar/examples/bb/custom"
+	myhttp "github.com/stamm/dep_radar/src/http"
+	"github.com/stamm/dep_radar/src/providers"
+	bbprivate "github.com/stamm/dep_radar/src/providers/bitbucketprivate"
+	"github.com/stamm/dep_radar/src/providers/github"
+
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/html"
 	i "github.com/stamm/dep_radar/src/interfaces"
 )
+
+var (
+	bbClient   *myhttp.Client
+	bbGitURL   string
+	bbAPIURL   string
+	bbGoGetURL string
+)
+
+func init() {
+	bbGitURL = os.Getenv("BB_GIT_URL")
+	bbGoGetURL = os.Getenv("BB_GO_GET_URL")
+	bbAPIURL = "https://" + bbGitURL
+	bbClient = myhttp.NewClient(
+		myhttp.Options{
+			User:     os.Getenv("BB_USER"),
+			Password: os.Getenv("BB_PASSWORD"),
+		}, 10)
+}
 
 func main() {
 	http.HandleFunc("/", handler)
@@ -25,7 +48,7 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	// get all applications packages
-	prov, provDetector := custom.Detector()
+	prov, provDetector := Detector()
 	depDetector := deps.DefaultDetector()
 
 	// Create a little wrapper with custom logic for detect
@@ -52,4 +75,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(htmlResult)
 	fmt.Fprintf(w, "took %s", time.Since(start))
+}
+
+// Detector returns bitbucket provider and detector
+func Detector() (*bbprivate.Provider, *providers.Detector) {
+	bbProv := bbprivate.New(bbClient, bbGitURL, bbGoGetURL, bbAPIURL)
+	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	detector := providers.NewDetector().
+		AddProvider(bbProv).
+		AddProvider(githubProv)
+	return bbProv, detector
 }

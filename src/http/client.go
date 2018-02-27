@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var (

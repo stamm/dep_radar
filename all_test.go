@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
-	"github.com/stamm/dep_radar/interfaces/mocks"
 	"github.com/stamm/dep_radar/src/deps"
+	i "github.com/stamm/dep_radar/src/interfaces"
+	"github.com/stamm/dep_radar/src/interfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

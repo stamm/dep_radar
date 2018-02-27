@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/http"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 const (

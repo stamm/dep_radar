@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/stamm/dep_radar/examples/bb/custom"
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/html"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 func main() {

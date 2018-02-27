@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 // MetaImport represents the parsed <meta name="go-import"

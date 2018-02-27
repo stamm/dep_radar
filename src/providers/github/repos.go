@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 type reposResponse struct {

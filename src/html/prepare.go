@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/fill"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 	versionpkg "github.com/stamm/dep_radar/src/version"
 )

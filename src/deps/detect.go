@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/deps/dep"
 	"github.com/stamm/dep_radar/src/deps/glide"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var (

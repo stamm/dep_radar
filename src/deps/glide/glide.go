@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/glide/cfg"
 	"github.com/Masterminds/glide/path"
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var (

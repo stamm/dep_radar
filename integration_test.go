@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/deps/dep"
 	"github.com/stamm/dep_radar/src/deps/glide"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 	"github.com/stamm/dep_radar/src/providers/github"
 	"github.com/stretchr/testify/require"

@@ -103,6 +103,8 @@ docker_latest: docker_push
 	docker tag $(CONTAINER_IMAGE):$(RELEASE) $(CONTAINER_IMAGE):latest
 	docker push $(CONTAINER_IMAGE):latest
 
+
+
 ### TESTS
 .PHONY: test
 test: vendor/touch

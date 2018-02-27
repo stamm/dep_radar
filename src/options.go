@@ -1,7 +1,7 @@
 package src
 
 import (
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 // MapRecommended map with option for libraries

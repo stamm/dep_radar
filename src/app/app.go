@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 var _ i.IApp = &App{}

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src/goimport"
+	i "github.com/stamm/dep_radar/src/interfaces"
 )
 
 // GetProject get all projects from bitbucket

@@ -6,9 +6,9 @@ import (
 	"html/template"
 	"io/ioutil"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/html/templates"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 )
 

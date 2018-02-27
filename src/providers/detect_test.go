@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers/github"
 	"github.com/stretchr/testify/assert"
 )

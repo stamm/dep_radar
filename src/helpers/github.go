@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	i "github.com/stamm/dep_radar/interfaces"
 	"github.com/stamm/dep_radar/src"
 	"github.com/stamm/dep_radar/src/app"
 	"github.com/stamm/dep_radar/src/deps"
 	"github.com/stamm/dep_radar/src/html"
+	i "github.com/stamm/dep_radar/src/interfaces"
 	"github.com/stamm/dep_radar/src/providers"
 	"github.com/stamm/dep_radar/src/providers/github"
 )

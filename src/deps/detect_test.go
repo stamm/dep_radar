@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	i "github.com/stamm/dep_radar/interfaces"
-	"github.com/stamm/dep_radar/interfaces/mocks"
+	i "github.com/stamm/dep_radar/src/interfaces"
+	"github.com/stamm/dep_radar/src/interfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

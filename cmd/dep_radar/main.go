@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/stamm/dep_radar/src"
-	"github.com/stamm/dep_radar/src/helpers"
+	"github.com/stamm/dep_radar"
+	"github.com/stamm/dep_radar/helpers"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var recom src.MapRecommended
+	var recom dep_radar.MapRecommended
 	if *recommendedFile != "" {
 		raw, err := ioutil.ReadFile(*recommendedFile)
 		if err != nil {

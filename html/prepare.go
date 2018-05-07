@@ -18,7 +18,8 @@ const (
 	classNeedVersion  = "table-warning"
 )
 
-type templateStruct struct {
+// TemplateStruct struct for html
+type TemplateStruct struct {
 	LibView []libView `json:"libs"`
 	AppView []appView `json:"apps"`
 }
@@ -40,8 +41,8 @@ type appLibView struct {
 	Version string `json:"version"`
 }
 
-// AppsHTML return html with table. In the head apps, on the left side - libs
-func Prepare(ctx context.Context, apps <-chan dep_radar.IApp, detector *providers.Detector, rec dep_radar.MapRecommended) templateStruct {
+// Prepare return struct with all apps and deps
+func Prepare(ctx context.Context, apps <-chan dep_radar.IApp, detector *providers.Detector, rec dep_radar.MapRecommended) TemplateStruct {
 	appsMap, libsMap := app.GetTags(ctx, apps, detector)
 	appsMap = app.AddVersionLibToApp(appsMap, libsMap)
 
@@ -154,7 +155,7 @@ func Prepare(ctx context.Context, apps <-chan dep_radar.IApp, detector *provider
 		appViewData = append(appViewData, appData)
 	}
 
-	return templateStruct{
+	return TemplateStruct{
 		LibView: pkgsViewData,
 		AppView: appViewData,
 	}

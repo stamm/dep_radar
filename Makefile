@@ -19,6 +19,8 @@ APP_BIN=$(GOPATH)/bin/$(APP)
 GOMETALINTER_BIN:=$(GOBIN)/gometalinter.v2
 GOLINT_BIN:=$(GOBIN)/golint
 
+GO_BINDATA_BIN=$(GOPATH)/bin/go-bindata
+
 
 UNAME_S=$(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -58,16 +60,23 @@ vendor/touch: $(DEP_BIN) Gopkg.toml Gopkg.lock
 
 .PHONY: bindata
 bindata:
-	@$(MAKE) -B src/html/templates/bindata.go
+	@$(MAKE) -B html/templates/bindata.go
 
-src/html/templates/bindata.go: src/html/templates/*.html
-	go-bindata -o "./$@" -ignore "\.go" -pkg "templates" ./src/html/templates/
+html/templates/bindata.go: html/templates/*.html $(GO_BINDATA_BIN)
+	$(GO_BINDATA_BIN) -o "./$@" -ignore "\.go" -pkg "templates" ./html/templates/
+
+$(GO_BINDATA_BIN):
+	go get -u github.com/jteeuwen/go-bindata/...
 
 .PHONY: build
 build: $(APP_BIN)
 
-$(APP_BIN): vendor/touch src/html/templates/bindata.go
+$(APP_BIN): vendor/touch html/templates/bindata.go
 	go build -ldflags="-s -w" -o $@ $(GOPATH)/src/github.com/stamm/dep_radar/cmd/dep_radar/main.go
+
+run: html/templates/bindata.go
+	go run ./cmd/dep_radar/main.go
+
 
 ### RELEASE
 release: mkdir_release
@@ -138,4 +147,4 @@ $(GOLINT_BIN):
 	go get -u golang.org/x/lint/golint
 
 lint: $(GOLINT_BIN) $(GOMETALINTER_BIN) | $(TEST_TMP_DIR)
-	$(GOMETALINTER_BIN) --no-config --disable-all --enable=golint --deadline=5m -e "src/html/templates/bindata.go" -e "^vendor/" ./...
+	$(GOMETALINTER_BIN) --no-config --disable-all --enable=golint --deadline=5m -e "html/templates/bindata.go" -e "^vendor/" ./...

@@ -22,7 +22,7 @@ func AppsHTML(ctx context.Context, apps <-chan dep_radar.IApp, detector *provide
 	if err != nil {
 		return buf.Bytes(), err
 	}
-	data := prepare(ctx, apps, detector, rec)
+	data := Prepare(ctx, apps, detector, rec)
 	err = tmpl.Execute(&buf, data)
 	if err != nil {
 		return buf.Bytes(), err

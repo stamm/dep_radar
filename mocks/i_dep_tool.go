@@ -17,7 +17,9 @@ func (_m *IDepTool) Deps(_a0 context.Context, _a1 dep_radar.IApp) (dep_radar.App
 	if rf, ok := ret.Get(0).(func(context.Context, dep_radar.IApp) dep_radar.AppDeps); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(dep_radar.AppDeps)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(dep_radar.AppDeps)
+		}
 	}
 
 	var r1 error

@@ -31,7 +31,9 @@ func (_m *IApp) Deps(_a0 context.Context) (dep_radar.AppDeps, error) {
 	if rf, ok := ret.Get(0).(func(context.Context) dep_radar.AppDeps); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(dep_radar.AppDeps)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(dep_radar.AppDeps)
+		}
 	}
 
 	var r1 error

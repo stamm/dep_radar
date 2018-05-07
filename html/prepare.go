@@ -19,29 +19,29 @@ const (
 )
 
 type templateStruct struct {
-	LibView []libView
-	AppView []appView
+	LibView []libView `json:"libs"`
+	AppView []appView `json:"apps"`
 }
 
 type libView struct {
-	Name  string
-	Hints string
+	Name  string `json:"name"`
+	Hints string `json:"hints,omitempty"`
 }
 
 type appView struct {
-	Name string
-	Libs map[string]appLibView
+	Name string                `json:"name"`
+	Libs map[string]appLibView `json:"libs"`
 }
 
 type appLibView struct {
-	Ok      bool
-	Class   string
-	Title   string
-	Version string
+	Ok      bool   `json:"ok"`
+	Class   string `json:"class,omitempty"`
+	Title   string `json:"title,omitempty"`
+	Version string `json:"version"`
 }
 
 // AppsHTML return html with table. In the head apps, on the left side - libs
-func prepare(ctx context.Context, apps <-chan dep_radar.IApp, detector *providers.Detector, rec dep_radar.MapRecommended) templateStruct {
+func Prepare(ctx context.Context, apps <-chan dep_radar.IApp, detector *providers.Detector, rec dep_radar.MapRecommended) templateStruct {
 	appsMap, libsMap := app.GetTags(ctx, apps, detector)
 	appsMap = app.AddVersionLibToApp(appsMap, libsMap)
 

@@ -20,6 +20,18 @@ GOMETALINTER_BIN:=$(GOBIN)/gometalinter.v2
 GOLINT_BIN:=$(GOBIN)/golint
 
 
+UNAME_S=$(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	OS=linux
+endif
+ifeq ($(UNAME_S),Darwin)
+	OS=darwin
+endif
+UNAME_M=$(shell uname -m)
+ARCH=386
+ifeq ($(UNAME_M),x86_64)
+	ARCH=amd64
+endif
 # GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')
 # IS_DESIRE_VERSION = $(shell expr $(GOVER) \>= $(MIN_GO_VERSION))
 # ifeq ($(IS_DESIRE_VERSION),0)
@@ -34,14 +46,8 @@ generate:
 dep_install: $(DEP_BIN)
 
 $(DEP_BIN):
-	if [ ! -d $(GOPATH)/src/github.com/golang/dep ] ;\
-	then \
-		git clone https://github.com/golang/dep.git $(GOPATH)/src/github.com/golang/dep; \
-	fi
-	cd $(GOPATH)/src/github.com/golang/dep; \
-		git pull --tags; \
-		git checkout $(DEP_VERSION); \
-		go build -o $(DEP_BIN) ./cmd/dep
+	curl -L -o $(DEP_BIN) "https://github.com/golang/dep/releases/download/$(DEP_VERSION)/dep-$(OS)-$(ARCH)"
+	chmod +x $(DEP_BIN)
 
 .PHONY: deps
 deps: vendor/touch

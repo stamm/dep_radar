@@ -1,9 +1,8 @@
 FROM golang:1.10.0-alpine as builder
 ENV CGO_ENABLED=0
-RUN apk --no-cache add git make upx
+RUN apk --no-cache add git make upx curl
 WORKDIR $GOPATH/src/github.com/stamm/dep_radar
 COPY . $GOPATH/src/github.com/stamm/dep_radar
-RUN make dep_install
 RUN make build && \
 	upx $GOPATH/bin/dep_radar  && \
 	cp $GOPATH/bin/dep_radar /

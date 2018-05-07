@@ -1,4 +1,4 @@
-FROM golang:1.10.0-alpine as builder
+FROM golang:1.10.2-alpine as builder
 ENV CGO_ENABLED=0
 RUN apk --no-cache add git make upx curl
 WORKDIR $GOPATH/src/github.com/stamm/dep_radar

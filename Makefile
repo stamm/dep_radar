@@ -127,11 +127,11 @@ test: vendor/touch
 
 .PHONY: test
 test-race:
-	env GOGC=off go test -race $(TEST_ARGS) ./...
+	env GOGC=off CGO_ENABLED=1 go test -race $(TEST_ARGS) ./...
 
 .PHONY: coverage
 coverage: $(TMP_DIR) vendor/touch
-	go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
+	env CGO_ENABLED=1 go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
 
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)

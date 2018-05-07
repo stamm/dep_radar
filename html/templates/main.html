@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dep radar</title>
+    <style>
+      .dotted{text-decoration: none; border-bottom:1px dotted #007bff;}
+      .dotted:hover { text-decoration: none; border-bottom:1px dotted #0056b3; }
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+  </head>
+<body>
+
+<div id="app">
+  <dep-radar/>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+<script>
+
+Vue.component('dep-radar', {
+  data: function () {
+    return {
+      data: {},
+      lastOrg: "",
+      org: "",
+      loading: false,
+      error: "",
+      filterApp: "",
+      filterLib: "",
+      examples: ["dep-radar", "heptio", "Masterminds", "uber-go", "jaegertracing"],
+    }
+  },
+  created () {
+		if (this.org != "") {
+			this.fetchData()
+		}
+  },
+  methods: {
+    fetchData () {
+      if (this.loading) {
+        return
+      }
+      if (this.org == "") {
+        this.error = "Empty name"
+        return
+      }
+      this.loading = true
+      this.error = ""
+      this.lastOrg = this.org
+      axios
+        .get("/api/?github_org="+this.org)
+        .then(response => {
+          this.data = response.data;
+          if (this.data.apps.length == 0) {
+            this.error = "No repos with deps"
+          }
+        })
+        .catch(error => {
+          console.log(error)
+          this.error = "Response: " + error.response.data + ", status code: " + error.response.status
+        })
+        .finally(() => this.loading = false)
+    },
+    filter: function (objects, substr) {
+      if (substr == "") {
+        return objects;
+      }
+      return objects.filter( obj => obj.name.includes(substr));
+    },
+    filterKeys: function (objects, substr) {
+      if (substr == "") {
+        return objects;
+      }
+      return Object.keys(objects)
+        .filter(key => key.includes(substr))
+        .reduce((obj, key) => {
+          obj[key] = objects[key];
+          return obj;
+        }, {});
+    },
+  },
+  template: `<div class="m-2">
+      <form class="form-inline mb-2" v-on:submit.prevent="fetchData">
+        <div class="input-group mr-2">
+          <div class="input-group-prepend">
+            <span class="input-group-text">github.com/</span>
+          </div>
+          <input type="text" class="form-control" v-model="org" placeholder="organization or repo" autofocus>
+        </div>
+				<button class="btn btn-primary" :disabled="loading"><i class="d-inline fas fa-spinner fa-pulse" v-if="loading"></i> Scan</button>
+      </form>
+      <div>
+      <ul class="list-inline" v-if="examples.length > 0">
+          <li class="list-inline-item" v-for="example in examples">
+            <a href="#" class="dotted" @click.prevent="org=example" v-if="example != org">{{example}}</a>
+            <section v-else>{{example}}</section>
+          </li>
+      </ul>
+      </div>
+      <div class="alert alert-danger" v-if="error">
+        {{ error }}
+      </div>
+      <section v-else>
+        <div v-if="loading">
+          Loading…
+        </div>
+        <section v-else-if="data.apps && data.apps.length > 0">
+          <div class="table-responsive-md">
+            <table class="table table-bordered table-sm">
+              <thead class="thead-dark">
+                <tr>
+                  <td>
+                    <input type="text" placeholder="filter the apps" v-model="filterApp" v-if="data.apps && data.apps.length > 1">
+                    <input type="text" placeholder="filter the libs" v-model="filterLib">
+                  </td>
+                  <th v-for="lib, i in filter(data.libs, filterLib)" v-bind:key="lib.name">
+                      {{lib.name}}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="app, i in filter(data.apps, filterApp)" v-bind:key="app.name">
+                  <td class="table-dark">{{app.name}}</td>
+                  <td v-for="lib, i in filterKeys(app.libs, filterLib)" v-bind:key="lib.name">
+                    {{lib.version}}
+                </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>`
+})
+
+const app = new Vue({
+  el: "#app",
+});
+
+</script>
+
+</body>
+</html>

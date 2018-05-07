@@ -19,36 +19,40 @@ Your code must implement:
 * Init provider detector. It can be a default with support only github, but you can add you own provider
 * A http handler with calling method for generate html table with all apps and dependencies
 
-Simple example for create a table with dependencies for whole github organization [dep-radar](https://github.com/dep-radar):
+Simple example that shows a table with dependencies for entered github organization:
 
-`docker run -p 8081:8081 stamm/dep_radar:latest -github_org="dep-radar"`
+`docker run -p 8081:8081 stamm/dep_radar:3.0.0`
 
-Or with showing state of dependencies:
+To put your token for github use this command:
 
-* Recommended: restriction for version, for example `>=0.13`
-* Mandatory: lib must be in an app
-* Exclude: lib must be absent in an app
-* NeedVersion: you must use version, not hash
+`docker run -e "GITHUB_TOKEN=t0ken" -p 8081:8081 stamm/dep_radar:3.0.0`
+
+> Or with showing state of dependencies:
+
+> * Recommended: restriction for version, for example `>=0.13`
+> * Mandatory: lib must be in an app
+> * Exclude: lib must be absent in an app
+> * NeedVersion: you must use version, not hash
 
 
-```
-cat <<EOT > /tmp/recommended.json
-{
-	"github.com/pkg/errors": {
-		"Recommended": ">=0.8.0",
-		"Mandatory":  true
-	},
-	"github.com/kr/fs": {
-		"Exclude": true
-	},
-	"github.com/pkg/profile": {
-		"NeedVersion": true
-	}
-}
-EOT
-```
+> ```
+> cat <<EOT > /tmp/recommended.json
+> {
+> 	"github.com/pkg/errors": {
+> 		"Recommended": ">=0.8.0",
+> 		"Mandatory":  true
+> 	},
+> 	"github.com/kr/fs": {
+> 		"Exclude": true
+> 	},
+> 	"github.com/pkg/profile": {
+> 		"NeedVersion": true
+> 	}
+> }
+> EOT
+> ```
 
-`docker run -v /tmp:/cfg -p 8081:8081 stamm/dep_radar:latest -recommended_file="/cfg/recommended.json" -github_org="dep-radar"`
+> `docker run -v /tmp:/cfg -p 8081:8081 stamm/dep_radar:latest -recommended_file="/cfg/recommended.json" -github_org="dep-radar"`
 
 
 You can find more in [examples](examples/).

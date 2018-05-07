@@ -19,7 +19,21 @@ APP_BIN=$(GOPATH)/bin/$(APP)
 GOMETALINTER_BIN:=$(GOBIN)/gometalinter.v2
 GOLINT_BIN:=$(GOBIN)/golint
 
+GO_BINDATA_BIN=$(GOPATH)/bin/go-bindata
 
+
+UNAME_S=$(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	OS=linux
+endif
+ifeq ($(UNAME_S),Darwin)
+	OS=darwin
+endif
+UNAME_M=$(shell uname -m)
+ARCH=386
+ifeq ($(UNAME_M),x86_64)
+	ARCH=amd64
+endif
 # GOVER:=$(shell go version | cut -f3 -d " " | sed 's/go//')
 # IS_DESIRE_VERSION = $(shell expr $(GOVER) \>= $(MIN_GO_VERSION))
 # ifeq ($(IS_DESIRE_VERSION),0)
@@ -34,14 +48,8 @@ generate:
 dep_install: $(DEP_BIN)
 
 $(DEP_BIN):
-	if [ ! -d $(GOPATH)/src/github.com/golang/dep ] ;\
-	then \
-		git clone https://github.com/golang/dep.git $(GOPATH)/src/github.com/golang/dep; \
-	fi
-	cd $(GOPATH)/src/github.com/golang/dep; \
-		git pull --tags; \
-		git checkout $(DEP_VERSION); \
-		go build -o $(DEP_BIN) ./cmd/dep
+	curl -L -o $(DEP_BIN) "https://github.com/golang/dep/releases/download/$(DEP_VERSION)/dep-$(OS)-$(ARCH)"
+	chmod +x $(DEP_BIN)
 
 .PHONY: deps
 deps: vendor/touch
@@ -52,16 +60,23 @@ vendor/touch: $(DEP_BIN) Gopkg.toml Gopkg.lock
 
 .PHONY: bindata
 bindata:
-	@$(MAKE) -B src/html/templates/bindata.go
+	@$(MAKE) -B html/templates/bindata.go
 
-src/html/templates/bindata.go: src/html/templates/*.html
-	go-bindata -o "./$@" -ignore "\.go" -pkg "templates" ./src/html/templates/
+html/templates/bindata.go: html/templates/*.html $(GO_BINDATA_BIN)
+	$(GO_BINDATA_BIN) -o "./$@" -ignore "\.go" -pkg "templates" ./html/templates/
+
+$(GO_BINDATA_BIN):
+	go get -u github.com/jteeuwen/go-bindata/...
 
 .PHONY: build
 build: $(APP_BIN)
 
-$(APP_BIN): vendor/touch src/html/templates/bindata.go
+$(APP_BIN): vendor/touch html/templates/bindata.go
 	go build -ldflags="-s -w" -o $@ $(GOPATH)/src/github.com/stamm/dep_radar/cmd/dep_radar/main.go
+
+run: html/templates/bindata.go
+	go run ./cmd/dep_radar/main.go
+
 
 ### RELEASE
 release: mkdir_release
@@ -112,11 +127,11 @@ test: vendor/touch
 
 .PHONY: test
 test-race:
-	env GOGC=off go test -race $(TEST_ARGS) ./...
+	env GOGC=off CGO_ENABLED=1 go test -race $(TEST_ARGS) ./...
 
 .PHONY: coverage
 coverage: $(TMP_DIR) vendor/touch
-	go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
+	env CGO_ENABLED=1 go test -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
 
 $(TMP_DIR):
 	mkdir -p $(TMP_DIR)
@@ -132,4 +147,4 @@ $(GOLINT_BIN):
 	go get -u golang.org/x/lint/golint
 
 lint: $(GOLINT_BIN) $(GOMETALINTER_BIN) | $(TEST_TMP_DIR)
-	$(GOMETALINTER_BIN) --no-config --disable-all --enable=golint --deadline=5m -e "src/html/templates/bindata.go" -e "^vendor/" ./...
+	$(GOMETALINTER_BIN) --no-config --disable-all --enable=golint --deadline=5m -e "html/templates/bindata.go" -e "^vendor/" ./...

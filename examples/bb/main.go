@@ -9,15 +9,15 @@ import (
 	"os"
 	"time"
 
-	myhttp "github.com/stamm/dep_radar/src/http"
-	"github.com/stamm/dep_radar/src/providers"
-	bbprivate "github.com/stamm/dep_radar/src/providers/bitbucketprivate"
-	"github.com/stamm/dep_radar/src/providers/github"
+	"github.com/stamm/dep_radar"
+	myhttp "github.com/stamm/dep_radar/http"
+	"github.com/stamm/dep_radar/providers"
+	bbprivate "github.com/stamm/dep_radar/providers/bitbucketprivate"
+	"github.com/stamm/dep_radar/providers/github"
 
-	"github.com/stamm/dep_radar/src/app"
-	"github.com/stamm/dep_radar/src/deps"
-	"github.com/stamm/dep_radar/src/html"
-	i "github.com/stamm/dep_radar/src/interfaces"
+	"github.com/stamm/dep_radar/app"
+	"github.com/stamm/dep_radar/deps"
+	"github.com/stamm/dep_radar/html"
 )
 
 var (
@@ -52,7 +52,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	depDetector := deps.DefaultDetector()
 
 	// Create a little wrapper with custom logic for detect
-	apps := make(chan i.IApp, 100)
+	apps := make(chan dep_radar.IApp, 100)
 	go func() {
 		defer close(apps)
 		pkgs, err := prov.GetAllRepos(context.Background(), "GO")

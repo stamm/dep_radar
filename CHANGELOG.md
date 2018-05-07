@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.0.0] - 2018-05-07
+### Added
+- Create single page application to select organization on github
+
+### Changed
+- Huge refactoring: get rid of src package, move interfaces from one place
+
 ## [2.0.0] - 2018-02-27
 ### Added
 - More tests

@@ -46,8 +46,8 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 	depDetector := deps.DefaultDetector()
 
 	apps := make(chan dep_radar.IApp, 10)
-	orgName := r.URL.Query().Get("github_org")
-	if orgName == "" {
+	name := r.URL.Query().Get("name")
+	if name == "" {
 		http.Error(w, "empty name", http.StatusBadRequest)
 		return
 	}
@@ -57,14 +57,23 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 		pkgs []dep_radar.Pkg
 		err  error
 	)
-	if strings.Contains(orgName, "/") {
-		pkgs = append(pkgs, dep_radar.Pkg(github.Prefix+"/"+orgName))
+	if strings.Contains(name, "/") {
+		pkgs = append(pkgs, dep_radar.Pkg(github.Prefix+"/"+name))
 	} else {
-		pkgs, err = githubProv.GetAllOrgRepos(context.Background(), orgName)
-		if err != nil {
-			log.Printf("error for getting repos: %s\n", err)
-			http.Error(w, fmt.Sprintf("error while getting repos: %s\n", err), http.StatusBadRequest)
-			return
+		if githubProv.UserExists(ctx, name) {
+			pkgs, err = githubProv.GetAllUserRepos(ctx, name)
+			if err != nil {
+				log.Printf("error while getting repos for user: %s\n", err)
+				http.Error(w, fmt.Sprintf("error while getting repos for user: %s\n", err), http.StatusBadRequest)
+				return
+			}
+		} else {
+			pkgs, err = githubProv.GetAllOrgRepos(ctx, name)
+			if err != nil {
+				log.Printf("error for getting repos: %s\n", err)
+				http.Error(w, fmt.Sprintf("error while getting repos: %s\n", err), http.StatusBadRequest)
+				return
+			}
 		}
 	}
 	go func() {

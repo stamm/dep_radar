@@ -82,27 +82,27 @@ run: html/templates/bindata.go
 release: mkdir_release
 	git tag $(RELEASE)
 	git push --tags
-	@$(MAKE) -B -j3 tmp/releases/$(RELEASE)/$(APP)-darwin-amd64.tar.gz tmp/releases/$(RELEASE)/$(APP)-linux-amd64.tar.gz docker_latest
+	@$(MAKE) -B -j3 tmp/release/$(RELEASE)/$(APP)-darwin-amd64.tar.gz tmp/release/$(RELEASE)/$(APP)-linux-amd64.tar.gz docker_latest
 
 build_release: mkdir_release
-	@$(MAKE) -B -j3 tmp/release/$(APP)-darwin-amd64.tar.gz tmp/release/$(APP)-linux-amd64.tar.gz
+	@$(MAKE) -B -j3 tmp/release/$(RELEASE)/$(APP)-darwin-amd64.tar.gz tmp/release/$(RELEASE)/$(APP)-linux-amd64.tar.gz
 
 .PHONY: mkdir_release
 mkdir_release:
-	mkdir -p tmp/release/
+	mkdir -p tmp/release/$(RELEASE)
 	rm -rf tmp/release/*
 
-tmp/release/$(APP)-darwin-amd64:
+tmp/release/$(RELEASE)/$(APP)-darwin-amd64:
 	env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $@ ./cmd/dep_radar/main.go
 
-tmp/release/$(APP)-darwin-amd64.tar.gz: tmp/release/$(APP)-darwin-amd64
-	tar -czf $@ tmp/release/$(APP)-darwin-amd64
+tmp/release/$(RELEASE)/$(APP)-darwin-amd64.tar.gz: tmp/release/$(RELEASE)/$(APP)-darwin-amd64
+	tar -czf $@ tmp/release/$(RELEASE)/$(APP)-darwin-amd64
 
-tmp/release/$(APP)-linux-amd64:
+tmp/release/$(RELEASE)/$(APP)-linux-amd64:
 	env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $@ ./cmd/dep_radar/main.go
 
-tmp/release/$(APP)-linux-amd64.tar.gz: tmp/release/$(APP)-linux-amd64
-	tar -czf $@ tmp/release/$(APP)-linux-amd64
+tmp/release/$(RELEASE)/$(APP)-linux-amd64.tar.gz: tmp/release/$(RELEASE)/$(APP)-linux-amd64
+	tar -czf $@ tmp/release/$(RELEASE)/$(APP)-linux-amd64
 
 ### DOCKER IMAGES
 .PHONY: docker_build

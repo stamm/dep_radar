@@ -56,7 +56,7 @@ Vue.component('dep-radar', {
       this.error = ""
       this.lastOrg = this.org
       axios
-        .get("/api/?github_org="+this.org)
+        .get("/api/?name="+this.org)
         .then(response => {
           this.data = response.data;
           if (this.data.apps.length == 0) {
@@ -93,7 +93,7 @@ Vue.component('dep-radar', {
           <div class="input-group-prepend">
             <span class="input-group-text">github.com/</span>
           </div>
-          <input type="text" class="form-control" v-model="org" placeholder="organization or repo" autofocus>
+          <input type="text" class="form-control" v-model="org" placeholder="organization, user or repo" autofocus>
         </div>
 				<button class="btn btn-primary" :disabled="loading"><i class="d-inline fas fa-spinner fa-pulse" v-if="loading"></i> Scan</button>
       </form>

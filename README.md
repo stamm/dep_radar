@@ -23,11 +23,11 @@ Your code must implement:
 
 Simple example that shows a table with dependencies for entered github organization:
 
-`docker run -p 8081:8081 stamm/dep_radar:3.0.0`
+`docker run -p 8081:8081 stamm/dep_radar:3.1.0`
 
 To put your token for github use this command:
 
-`docker run -e "GITHUB_TOKEN=t0ken" -p 8081:8081 stamm/dep_radar:3.0.0`
+`docker run -e "GITHUB_TOKEN=t0ken" -p 8081:8081 stamm/dep_radar:3.1.0`
 
 
 Or with showing state of dependencies:

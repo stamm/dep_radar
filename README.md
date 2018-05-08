@@ -7,6 +7,8 @@
 `dep radar` is a prototype to control Go dependencies in microservice world.
 `dep radar` requires Go 1.10 or newer to compile.
 
+You can try demo: [https://dep-radar.zagirov.name](https://dep-radar.zagirov.name)
+
 # Screenshots
 ![Frontend](https://github.com/stamm/dep_radar/raw/master/docs/3.0.png)
 

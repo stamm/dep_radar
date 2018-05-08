@@ -12,9 +12,6 @@ You can try demo: [https://dep-radar.zagirov.name](https://dep-radar.zagirov.nam
 # Screenshots
 ![Frontend](https://github.com/stamm/dep_radar/raw/master/docs/3.0.png)
 
-![Application screenshot](https://github.com/stamm/dep_radar/raw/master/docs/apps.png)
-
-![Libraries screenshot](https://github.com/stamm/dep_radar/raw/master/docs/libs.png)
 
 ## How it works
 You can't just run some binary. You have to write a bit of code.
@@ -25,11 +22,11 @@ Your code must implement:
 
 Simple example that shows a table with dependencies for entered github organization:
 
-`docker run -p 8081:8081 stamm/dep_radar:3.1.0`
+`docker run -p 8081:8081 stamm/dep_radar:3.1.2`
 
 To put your token for github use this command:
 
-`docker run -e "GITHUB_TOKEN=t0ken" -p 8081:8081 stamm/dep_radar:3.1.0`
+`docker run -e "GITHUB_TOKEN=t0ken" -p 8081:8081 stamm/dep_radar:3.1.2`
 
 
 Or with showing state of dependencies:

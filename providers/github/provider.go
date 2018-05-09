@@ -15,7 +15,7 @@ import (
 const (
 	// Prefix for github
 	Prefix = "github.com"
-	apiUrl = "https://api.github.com/"
+	apiURL = "https://api.github.com/"
 )
 
 var (
@@ -120,8 +120,6 @@ func (g Provider) tagsFromGithub(ctx context.Context, pkg dep_radar.Pkg) ([]dep_
 		return nil, err
 	}
 
-	// fmt.Printf("string(content) = %+v\n", string(content))
-
 	var tags []tag
 	err = json.Unmarshal(content, &tags)
 	if err != nil {
@@ -150,5 +148,5 @@ func makePkgName(fullname string) dep_radar.Pkg {
 }
 
 func makeAPIURL(uri string) string {
-	return fmt.Sprintf("%s%s", apiUrl, uri)
+	return fmt.Sprintf("%s%s", apiURL, uri)
 }

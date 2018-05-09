@@ -27,11 +27,13 @@ func TestGithubReposOrg_Ok(t *testing.T) {
 ]`), nil)
 	tagsGetter := New(client)
 
-	pkgs, err := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
+	pkgs, errs := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
+	err, ok := <-errs
+	require.False(ok)
 	require.NoError(err)
 	require.Len(pkgs, 2, "Expect 2 repos in org")
-	require.EqualValues("github.com/dep-radar/test_app", pkgs[0])
-	require.EqualValues("github.com/dep-radar/test_app2", pkgs[1])
+	require.EqualValues("github.com/dep-radar/test_app", <-pkgs)
+	require.EqualValues("github.com/dep-radar/test_app2", <-pkgs)
 }
 
 func TestGithubReposOrg_Error(t *testing.T) {
@@ -42,7 +44,9 @@ func TestGithubReposOrg_Error(t *testing.T) {
 	client.On("Get", mock.Anything, "https://api.github.com/orgs/dep-radar/repos").Return([]byte(``), errors.New("aaa"))
 	tagsGetter := New(client)
 
-	pkgs, err := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
+	pkgs, errs := tagsGetter.GetAllOrgRepos(context.Background(), "dep-radar")
+	err, ok := <-errs
+	require.True(ok)
 	require.Error(err)
 	require.Len(pkgs, 0, "Expect 0 repos in org")
 }
@@ -86,11 +90,13 @@ func TestGithubReposUser_Ok(t *testing.T) {
 ]`), nil)
 	tagsGetter := New(client)
 
-	pkgs, err := tagsGetter.GetAllUserRepos(context.Background(), "stamm")
+	pkgs, errs := tagsGetter.GetAllUserRepos(context.Background(), "stamm")
+	err, ok := <-errs
+	require.False(ok)
 	require.NoError(err)
 	require.Len(pkgs, 2, "Expect 2 repos for user")
-	require.EqualValues("github.com/stamm/dep_radar", pkgs[0])
-	require.EqualValues("github.com/stamm/callstat", pkgs[1])
+	require.EqualValues("github.com/stamm/dep_radar", <-pkgs)
+	require.EqualValues("github.com/stamm/callstat", <-pkgs)
 }
 
 func TestGithubReposUser_Error(t *testing.T) {
@@ -101,7 +107,9 @@ func TestGithubReposUser_Error(t *testing.T) {
 	client.On("Get", mock.Anything, "https://api.github.com/users/stamm/repos").Return([]byte(``), errors.New("aaa"))
 	tagsGetter := New(client)
 
-	pkgs, err := tagsGetter.GetAllUserRepos(context.Background(), "stamm")
+	pkgs, errs := tagsGetter.GetAllUserRepos(context.Background(), "stamm")
+	err, ok := <-errs
+	require.True(ok)
 	require.Error(err)
 	require.Len(pkgs, 0, "Expect 0 repos for user")
 }

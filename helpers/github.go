@@ -44,18 +44,18 @@ func wrapOrgHandler(ctx context.Context, token, orgName string, recom dep_radar.
 
 		apps := make(chan dep_radar.IApp, 10)
 		go func() {
-			pkgs, err := githubProv.GetAllOrgRepos(context.Background(), orgName)
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, pkg := range pkgs {
+			defer close(apps)
+			pkgs, errs := githubProv.GetAllOrgRepos(context.Background(), orgName)
+			for pkg := range pkgs {
 				apiApp, err := app.New(ctx, pkg, "master", provDetector, depDetector)
 				if err != nil {
 					log.Printf("cant create app %s, got err: %s\n", pkg, err)
 				}
 				apps <- apiApp
 			}
-			close(apps)
+			if err, ok := <-errs; ok && err != nil {
+				log.Println(err)
+			}
 		}()
 
 		htmlResult, err := html.AppsHTML(ctx, apps, provDetector, recom)

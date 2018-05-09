@@ -22,6 +22,18 @@ const (
 	port = "8081"
 )
 
+var (
+	githubProv   *github.Provider
+	provDetector *providers.Detector
+	depDetector  *deps.Detector
+)
+
+func init() {
+	githubProv = github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
+	provDetector = providers.NewDetector().AddProvider(githubProv)
+	depDetector = deps.DefaultDetector()
+}
+
 func main() {
 	http.HandleFunc("/", handlerPage)
 	http.HandleFunc("/api/", handlerAPI)
@@ -41,9 +53,6 @@ func handlerPage(w http.ResponseWriter, r *http.Request) {
 
 func handlerAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
-	provDetector := providers.NewDetector().AddProvider(githubProv)
-	depDetector := deps.DefaultDetector()
 
 	apps := make(chan dep_radar.IApp, 10)
 	name := r.URL.Query().Get("name")
@@ -52,52 +61,110 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var mainErr error
 	ctx := context.Background()
-	var (
-		pkgs []dep_radar.Pkg
-		err  error
-	)
-	if strings.Contains(name, "/") {
-		pkgs = append(pkgs, dep_radar.Pkg(github.Prefix+"/"+name))
-	} else {
-		if githubProv.UserExists(ctx, name) {
-			pkgs, err = githubProv.GetAllUserRepos(ctx, name)
-			if err != nil {
-				log.Printf("error while getting repos for user: %s\n", err)
-				http.Error(w, fmt.Sprintf("error while getting repos for user: %s\n", err), http.StatusBadRequest)
-				return
-			}
-		} else {
-			pkgs, err = githubProv.GetAllOrgRepos(ctx, name)
-			if err != nil {
-				log.Printf("error for getting repos: %s\n", err)
-				http.Error(w, fmt.Sprintf("error while getting repos: %s\n", err), http.StatusBadRequest)
-				return
-			}
-		}
-	}
+	pkgs, errs := getRepos(ctx, name)
 	go func() {
 		defer close(apps)
-		for _, pkg := range pkgs {
+		select {
+		case pkg, ok := <-pkgs:
+			if !ok {
+				return
+			}
+			if mainErr != nil {
+				break
+			}
 			apiApp, err := app.New(ctx, pkg, "master", provDetector, depDetector)
 			if err != nil {
 				log.Printf("cant create app %s, got err: %s\n", pkg, err)
+				break
 			}
 			apps <- apiApp
+		case err, ok := <-errs:
+			if !ok {
+				return
+			}
+			mainErr = err
 		}
 	}()
 
+	rules := r.URL.Query().Get("rules")
 	var recom dep_radar.MapRecommended
-	// 	err = json.Unmarshal(raw, &recom)
-	// 	if err != nil {
-	// 		fmt.Printf("error on unmarshal json: %s\n", err.Error())
-	// 		os.Exit(1)
-	// 	}
-	data := html.Prepare(ctx, apps, provDetector, recom)
-	result, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error %s", err), http.StatusInternalServerError)
-		return
+	if rules != "" {
+		err := json.Unmarshal([]byte(rules), &recom)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error on unmarshal json: %s\n", err.Error()), http.StatusBadRequest)
+			return
+		}
 	}
-	w.Write(result)
+
+	data := make(chan html.TemplateStruct)
+	go func() {
+		defer close(data)
+		data <- html.Prepare(ctx, apps, provDetector, recom)
+	}()
+	for {
+		select {
+		case val := <-data:
+			result, err := json.Marshal(val)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("error %s", err), http.StatusInternalServerError)
+				return
+			}
+			w.Write(result)
+			return
+		case err, ok := <-errs:
+			if !ok && mainErr != nil {
+				err = mainErr
+			}
+			if err != nil {
+				log.Println(err)
+				http.Error(w, fmt.Sprintf("error %s", err), http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+}
+
+func getRepos(ctx context.Context, name string) (<-chan dep_radar.Pkg, <-chan error) {
+	pkgs := make(chan dep_radar.Pkg, 10)
+	errsCh := make(chan error)
+	go func() {
+		defer func() {
+			close(pkgs)
+			close(errsCh)
+		}()
+		if strings.Contains(name, "/") {
+			pkgs <- dep_radar.Pkg(github.Prefix + "/" + name)
+			return
+		}
+
+		if githubProv.UserExists(ctx, name) {
+			pkgsUser, errs := githubProv.GetAllUserRepos(ctx, name)
+			go func() {
+				for pkg := range pkgsUser {
+					pkgs <- pkg
+				}
+			}()
+			err, ok := <-errs
+			if ok && err != nil {
+				errsCh <- fmt.Errorf("error while getting repos for user: %s", err)
+				return
+			}
+			return
+		}
+
+		pkgsOrg, errs := githubProv.GetAllOrgRepos(ctx, name)
+		go func() {
+			for pkg := range pkgsOrg {
+				pkgs <- pkg
+			}
+		}()
+		err, ok := <-errs
+		if ok && err != nil {
+			errsCh <- fmt.Errorf("error while getting repos: %s", err)
+			return
+		}
+	}()
+	return pkgs, errsCh
 }

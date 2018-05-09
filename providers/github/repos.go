@@ -3,7 +3,6 @@ package github
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/stamm/dep_radar"
 )
@@ -12,36 +11,18 @@ type reposResponse struct {
 	FullName string `json:"full_name"`
 }
 
+func (g *Provider) getOrgReposURL(org string) string {
+	return makeAPIURL("orgs/" + org + "/repos")
+}
+
 // GetAllOrgRepos get repos for organization
 func (g *Provider) GetAllOrgRepos(ctx context.Context, org string) ([]dep_radar.Pkg, error) {
-	var (
-		resultRepos []dep_radar.Pkg
-	)
-
 	url := g.getOrgReposURL(org)
-	repos, err := g.getRepos(ctx, url)
-	if err != nil {
-		return resultRepos, err
-	}
-	for _, repo := range repos {
-		resultRepos = append(resultRepos, dep_radar.Pkg(Prefix+"/"+repo.FullName))
-	}
-	return resultRepos, nil
+	return g.repos(ctx, url)
 }
 
-func (g *Provider) getRepos(ctx context.Context, url string) ([]reposResponse, error) {
-	var repos []reposResponse
-	reposResponse, err := g.client.Get(ctx, url)
-	if err != nil {
-		return repos, err
-	}
-	err = json.Unmarshal(reposResponse, &repos)
-
-	return repos, err
-}
-
-func (g *Provider) getOrgReposURL(org string) string {
-	return fmt.Sprintf("https://api.github.com/orgs/%s/repos", org)
+func (g *Provider) getUserURL(user string) string {
+	return makeAPIURL("users/" + user)
 }
 
 // UserExists check if user exists
@@ -51,27 +32,35 @@ func (g *Provider) UserExists(ctx context.Context, user string) bool {
 	return err == nil
 }
 
-func (g *Provider) getUserURL(user string) string {
-	return fmt.Sprintf("https://api.github.com/users/%s", user)
+func (g *Provider) getUserReposURL(user string) string {
+	return makeAPIURL("users/" + user + "/repos")
 }
 
 // GetAllUserRepos get repos for username
 func (g *Provider) GetAllUserRepos(ctx context.Context, user string) ([]dep_radar.Pkg, error) {
-	var (
-		resultRepos []dep_radar.Pkg
-	)
-
 	url := g.getUserReposURL(user)
-	repos, err := g.getRepos(ctx, url)
+	return g.repos(ctx, url)
+}
+
+func (g *Provider) repos(ctx context.Context, url string) ([]dep_radar.Pkg, error) {
+	repos, err := g.reposFromRequest(ctx, url)
 	if err != nil {
-		return resultRepos, err
+		return nil, err
 	}
+	resultRepos := make([]dep_radar.Pkg, 0, len(repos))
 	for _, repo := range repos {
-		resultRepos = append(resultRepos, dep_radar.Pkg(Prefix+"/"+repo.FullName))
+		resultRepos = append(resultRepos, makePkgName(repo.FullName))
 	}
 	return resultRepos, nil
 }
 
-func (g *Provider) getUserReposURL(org string) string {
-	return fmt.Sprintf("https://api.github.com/users/%s/repos", org)
+func (g *Provider) reposFromRequest(ctx context.Context, url string) ([]reposResponse, error) {
+	resp, err := g.client.Get(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	var repos []reposResponse
+	err = json.Unmarshal(resp, &repos)
+
+	return repos, err
 }

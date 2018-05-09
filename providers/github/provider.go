@@ -15,6 +15,7 @@ import (
 const (
 	// Prefix for github
 	Prefix = "github.com"
+	apiUrl = "https://api.github.com/"
 )
 
 var (
@@ -113,7 +114,7 @@ func (g Provider) GoGetURL() string {
 }
 
 func (g Provider) tagsFromGithub(ctx context.Context, pkg dep_radar.Pkg) ([]dep_radar.Tag, error) {
-	url := "https://api.github.com/repos/" + getPkgName(pkg) + "/tags?per_page=100"
+	url := makeAPIURL("repos/" + getPkgName(pkg) + "/tags?per_page=100")
 	content, err := g.client.Get(ctx, url)
 	if err != nil {
 		return nil, err
@@ -142,4 +143,12 @@ func getPkgName(pkg dep_radar.Pkg) string {
 	name := strings.Trim(string(pkg), "/")
 	re := regexp.MustCompile("^github\\.com/")
 	return re.ReplaceAllString(name, "")
+}
+
+func makePkgName(fullname string) dep_radar.Pkg {
+	return dep_radar.Pkg(Prefix + "/" + fullname)
+}
+
+func makeAPIURL(uri string) string {
+	return fmt.Sprintf("%s%s", apiUrl, uri)
 }

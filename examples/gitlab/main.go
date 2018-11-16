@@ -41,7 +41,7 @@ func main() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	provDetector := Detector()
+	provDetector := detector()
 	depDetector := deps.DefaultDetector()
 
 	// Create a little wrapper with custom logic for detect
@@ -67,7 +67,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "took %s", time.Since(start))
 }
 
-func Detector() *providers.Detector {
+func detector() *providers.Detector {
 	prov := gitlabProv.New(gitlabClient, gitlabGoGetURL)
 	githubProv := github.New(github.NewHTTPWrapper(os.Getenv("GITHUB_TOKEN"), 10))
 	detector := providers.NewDetector().

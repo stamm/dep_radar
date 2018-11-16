@@ -13,8 +13,8 @@ func TestCleanID_Ok(t *testing.T) {
 		goGetURL: "gitlab.com",
 	}
 
-	var pkgId = "wxcsdb88/go"
-	var pkg = dep_radar.Pkg("gitlab.com/" + pkgId)
+	var pkgID = "wxcsdb88/go"
+	var pkg = dep_radar.Pkg("gitlab.com/" + pkgID)
 
-	require.EqualValues(p.cleanID(pkg), pkgId)
+	require.EqualValues(p.cleanID(pkg), pkgID)
 }

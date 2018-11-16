@@ -13,6 +13,7 @@ var (
 	_ dep_radar.IProvider  = &Provider{}
 )
 
+// Provider for gitlab
 type Provider struct {
 	goGetURL string
 

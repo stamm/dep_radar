@@ -2,12 +2,15 @@
 
 
 [[projects]]
+  digest = "1:167b6f65a6656de568092189ae791253939f076df60231fdd64588ac703892a1"
   name = "github.com/BurntSushi/toml"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
   version = "v0.3.0"
 
 [[projects]]
+  digest = "1:55882298901034b3057b45417195f02b725e873b390b72ae792278727256ef77"
   name = "github.com/Masterminds/glide"
   packages = [
     "cfg",
@@ -15,72 +18,163 @@
     "mirrors",
     "msg",
     "path",
-    "util"
+    "util",
   ]
+  pruneopts = "NUT"
   revision = "67790b3dbede72cfdc54aa53be4706322c9499e0"
   version = "v0.13.1"
 
 [[projects]]
+  digest = "1:44ba3152ffe15e49d62050dffc6e68543a0d641e4dcf94ee715ad687c3a648ed"
   name = "github.com/Masterminds/semver"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "15d8430ab86497c5c0da827b748823945e1cf1e1"
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:43e3179235895fe92135ab152876c60c1eb4e13c4a9d70edf30e13150fc93528"
   name = "github.com/Masterminds/vcs"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "6f1c6d150500e452704e9863f68c2559f58616bf"
   version = "v1.12.0"
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "NUT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = "NUT"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "NUT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
+  digest = "1:b62c4f18ad6eb454ac5253e7791ded3d7867330015ca4b37b6336e57f514585e"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
+  digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "NUT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:10301358a67805684f6b525cba6ad7ec014dbd56cccc2926fadc9189faa7889a"
   name = "github.com/stretchr/objx"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
   version = "v0.1"
 
 [[projects]]
+  digest = "1:d4de0b9ca757efa67bf8f0f0ee664ad4dc7e11fbad7dd38db4e403ad9b92fe3c"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "mock",
-    "require"
+    "require",
   ]
+  pruneopts = "NUT"
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
 [[projects]]
+  digest = "1:f22b36a96b48cc26a643f31a6fb098a7d0850d8fc13d0d4927ad8ac04e648f97"
+  name = "github.com/xanzy/go-gitlab"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "954568c5d9242be1fb907039d769952fa4f6bc70"
+  version = "v0.11.7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f8b491a7c25030a895a0e579742d07136e6958e77ef2d46e769db8eec4e58fcd"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "context/ctxhttp",
+  ]
+  pruneopts = "NUT"
+  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:208fa2a5bef7c22d8b50ec312ef469b2abaa5afeb9e04fe4d27bf28952bceab7"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "NUT"
+  revision = "f42d05182288abf10faef86d16c0d07b8d40ea2d"
+
+[[projects]]
+  digest = "1:655acbef8faad33db29b6a35655341fb4a594e87e56635f05a3e70ed0bd7bd95"
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch",
+  ]
+  pruneopts = "NUT"
+  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
+  version = "v1.3.0"
+
+[[projects]]
   branch = "v2"
+  digest = "1:13e704c08924325be00f96e47e7efe0bfddf0913cdfc237423c83f9b183ff590"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a5d7ea96888e250db4c031875a9fc2964350e1909f4fb74f70494f9ab7e85154"
+  input-imports = [
+    "github.com/BurntSushi/toml",
+    "github.com/Masterminds/glide/cfg",
+    "github.com/Masterminds/glide/path",
+    "github.com/Masterminds/semver",
+    "github.com/pkg/errors",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/mock",
+    "github.com/stretchr/testify/require",
+    "github.com/xanzy/go-gitlab",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

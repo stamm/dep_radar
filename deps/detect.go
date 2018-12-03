@@ -31,6 +31,7 @@ func (d *Detector) Deps(ctx context.Context, app dep_radar.IApp) (dep_radar.AppD
 	var (
 		errs []string
 		wg   sync.WaitGroup
+		mx   sync.Mutex
 	)
 	depResult := make(chan dep_radar.AppDeps)
 	done := make(chan struct{})
@@ -47,7 +48,9 @@ func (d *Detector) Deps(ctx context.Context, app dep_radar.IApp) (dep_radar.AppD
 				return
 				// return deps, nil
 			}
+			mx.Lock()
 			errs = append(errs, err.Error())
+			mx.Unlock()
 		}(tool)
 	}
 

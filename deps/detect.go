@@ -33,13 +33,14 @@ func (d *Detector) Deps(ctx context.Context, app dep_radar.IApp) (dep_radar.AppD
 		wg   sync.WaitGroup
 		mx   sync.Mutex
 	)
-	depResult := make(chan dep_radar.AppDeps)
-	done := make(chan struct{})
+
+	depResult := make(chan dep_radar.AppDeps, len(d.Tools))
+	done := make(chan struct{}, 1)
+	wg.Add(len(d.Tools))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	for _, tool := range d.Tools {
-		wg.Add(1)
 		go func(tool dep_radar.IDepTool) {
 			defer wg.Done()
 			deps, err := tool.Deps(ctx, app)
